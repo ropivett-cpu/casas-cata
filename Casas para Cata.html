@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)file:///C:/Users/Usuario/Downloads/index.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casas para Cata</title>
+  <link rel="stylesheet" href="./Casas para Cata_files/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F7F6F3;
+      --bg2: #EDECEA;
+      --bg3: #E4E2DE;
+      --text: #1A1916;
+      --text2: #5C5A55;
+      --text3: #9A9891;
+      --border: #D8D6D1;
+      --green: #1D9E75;
+      --green-bg: #E1F5EE;
+      --green-text: #085041;
+      --green-border: #5DCAA5;
+      --amber: #EF9F27;
+      --amber-bg: #FAEEDA;
+      --amber-text: #633806;
+      --amber-border: #EF9F27;
+      --purple: #7B74E0;
+      --purple-bg: #EEEDFE;
+      --purple-text: #3C3489;
+      --purple-border: #AFA9EC;
+      --red-bg: #FCEBEB;
+      --red-text: #501313;
+      --red-border: #F09595;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .page { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+    /* Header */
+    .site-header { margin-bottom: 2rem; }
+    .site-header h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
+    .site-header p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+    /* Metrics */
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 2.5rem; }
+    .metric { background: var(--bg2); border-radius: var(--radius-md); padding: .85rem 1rem; }
+    .metric-label { font-size: 11px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-val { font-size: 24px; font-weight: 600; color: var(--text); }
+    .metric-val.sm { font-size: 13px; font-weight: 500; padding-top: 4px; }
+
+    /* Section labels */
+    .section-label {
+      font-size: 11px; font-weight: 600; color: var(--text3);
+      letter-spacing: .07em; text-transform: uppercase;
+      margin-bottom: .75rem; display: flex; align-items: center; gap: 6px;
+    }
+    .section-label i { font-size: 13px; }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+    @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Card */
+    .card-wrap { border-radius: var(--radius-lg); overflow: hidden; }
+    .card {
+      background: #fff;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .card.featured { border: 2px solid var(--green); }
+
+    /* Carousel */
+    .carousel {
+      position: relative; width: 100%; aspect-ratio: 16/10;
+      background: var(--bg2); overflow: hidden; cursor: pointer;
+    }
+    .carousel a.overlay-link { position: absolute; inset: 0; z-index: 5; display: block; }
+    .carousel img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; opacity: 0; transition: opacity .3s;
+    }
+    .carousel img.active { opacity: 1; }
+    .carousel-placeholder {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; color: var(--text3);
+    }
+    .carousel-placeholder i { font-size: 36px; }
+    .carousel-placeholder span { font-size: 12px; }
+    .carousel-nav {
+      position: absolute; inset: 0; display: flex;
+      align-items: center; justify-content: space-between;
+      padding: 0 10px; pointer-events: none; z-index: 10;
+    }
+    .nav-btn {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,0.45); border: none; cursor: pointer;
+      pointer-events: all; display: flex; align-items: center;
+      justify-content: center; color: #fff; font-size: 16px;
+    }
+    .nav-btn:hover { background: rgba(0,0,0,0.7); }
+    .dots {
+      position: absolute; bottom: 10px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 5px;
+      z-index: 10; pointer-events: none;
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.5); pointer-events: all;
+      cursor: pointer; transition: background .2s;
+    }
+    .dot.active { background: #fff; }
+    .photo-count {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.5); color: #fff;
+      font-size: 11px; padding: 3px 8px; border-radius: 20px;
+      z-index: 10; pointer-events: none;
+    }
+    .open-badge {
+      position: absolute; bottom: 10px; right: 10px;
+      background: rgba(0,0,0,0.55); color: #fff;
+      font-size: 11px; padding: 4px 9px; border-radius: var(--radius-sm);
+      z-index: 10; pointer-events: none;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .feat-badge {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--green); color: #fff;
+      font-size: 11px; padding: 3px 9px; border-radius: 20px;
+      z-index: 10; pointer-events: none;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    /* Portal links */
+    .portal-links {
+      display: flex; gap: 6px; padding: .6rem 1rem;
+      border-bottom: 0.5px solid var(--border); flex-wrap: wrap;
+    }
+    .plink {
+      font-size: 12px; color: #2563eb; text-decoration: none;
+      border: 0.5px solid #93c5fd; border-radius: var(--radius-sm);
+      padding: 3px 9px; display: flex; align-items: center; gap: 4px;
+    }
+    .plink:hover { background: #eff6ff; }
+
+    /* Card body */
+    .card-body { padding: .85rem 1.25rem; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.35; }
+    .card-addr { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag { font-size: 11px; padding: 3px 9px; border-radius: 20px; border: 0.5px solid; }
+    .tag-zona { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+    .tag-estado { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
+    .tag-tipo { background: var(--purple-bg); color: var(--purple-text); border-color: var(--purple-border); }
+    .desc-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+    .desc-block {
+      background: var(--bg2); border-radius: var(--radius-sm);
+      padding: .6rem .85rem; font-size: 12px; color: var(--text2);
+      line-height: 1.65; border-left: 2px solid var(--border);
+    }
+    .price-row {
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 0.5px solid var(--border); padding: .75rem 1.25rem;
+    }
+    .price { font-size: 15px; font-weight: 600; color: var(--text); }
+
+    /* Vote bar */
+    .vote-bar {
+      border-top: 0.5px solid var(--border);
+      padding: .6rem 1.25rem; display: flex;
+      align-items: center; gap: 7px; flex-wrap: wrap;
+    }
+    .vote-label { font-size: 12px; color: var(--text3); margin-right: 2px; }
+    .vote-btn {
+      font-size: 12px; padding: 4px 11px;
+      border: 0.5px solid var(--border); border-radius: var(--radius-sm);
+      background: transparent; cursor: pointer; color: var(--text2);
+      display: flex; align-items: center; gap: 4px;
+      transition: transform .1s;
+    }
+    .vote-btn:active { transform: scale(0.95); }
+    .vote-btn:hover { background: var(--bg2); }
+    .vote-btn.active-love { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+    .vote-btn.active-meh { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
+    .vote-btn.active-no { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+
+    /* Divider */
+    .divider { border: none; border-top: 0.5px solid var(--border); margin-bottom: 2rem; }
+
+    /* Empty state */
+    .empty-state {
+      background: var(--bg2); border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem; font-size: 13px; color: var(--text3);
+      margin-bottom: 2rem; display: flex; align-items: center; gap: 8px;
+    }
+
+    /* Floater animations */
+    .floater {
+      position: fixed; pointer-events: none;
+      font-size: 28px; z-index: 9999;
+    }
+    @keyframes float-up {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-120px) scale(1.4); }
+    }
+    @keyframes float-right {
+      0%   { opacity: 1; transform: translateX(0) scale(1); }
+      100% { opacity: 0; transform: translateX(120px) scale(1.4); }
+    }
+    @keyframes float-upright {
+      0%   { opacity: 1; transform: translate(0,0) scale(1); }
+      100% { opacity: 0; transform: translate(60px,-90px) scale(1.2); }
+    }
+    @keyframes slide-up {
+      0%   { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-30px); }
+    }
+    @keyframes slide-right {
+      0%   { opacity: 1; transform: translateX(0); }
+      100% { opacity: 0; transform: translateX(60px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .floater, .card-wrap { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header class="site-header">
+    <h1>Casas para Cata</h1>
+    <p id="subtitle">Semana del 22 de junio de 2026 · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
+  </header>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val" id="m-total">6</div></div>
+    <div class="metric"><div class="metric-label">Rango</div><div class="metric-val sm" id="m-range">U$D 95k – 150k</div></div>
+    <div class="metric"><div class="metric-label">PB con patio</div><div class="metric-val" id="m-patio">5 / 6</div></div>
+    <div class="metric"><div class="metric-label">Favoritas</div><div class="metric-val" id="count-love">–</div></div>
+    <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" id="count-meh">–</div></div>
+  </div>
+
+  <div id="sec-love" style="display:none">
+    <div class="section-label"><i class="ti ti-heart"></i> Favoritas</div>
+    <div class="grid" id="grid-love"></div>
+    <hr class="divider">
+  </div>
+
+  <div id="sec-meh" style="display:none">
+    <div class="section-label"><i class="ti ti-clock"></i> Posibles</div>
+    <div class="grid" id="grid-meh"></div>
+    <hr class="divider">
+  </div>
+
+  <div class="section-label"><i class="ti ti-star"></i> Destacadas</div>
+  <div class="grid" id="grid-featured"><div id="card-wrap-1" class="card-wrap">
+    <div class="card featured" id="card-1">
+      <div class="carousel" data-id="1">
+    <a class="overlay-link" href="https://www.argenprop.com/inmuebles/venta/villa-martelli/casa/dolares-0-150000" target="_blank" aria-label="Ver publicación en Argenprop"></a>
+    <img src="file:///C:/Users/Usuario/Downloads/photos/p1_1.jpg" alt="Foto 1 de Casa de época estilo chorizo con patio y parrilla" class="active" loading="lazy"><img src="file:///C:/Users/Usuario/Downloads/photos/p1_2.jpg" alt="Foto 2 de Casa de época estilo chorizo con patio y parrilla" class="" loading="lazy"><img src="file:///C:/Users/Usuario/Downloads/photos/p1_3.jpg" alt="Foto 3 de Casa de época estilo chorizo con patio y parrilla" class="" loading="lazy"><div class="feat-badge"><i class="ti ti-star"></i> Destacada</div><div class="photo-count" id="pc-1">1 / 3</div>
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    <div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(1,-1)" aria-label="Foto anterior"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(1,1)" aria-label="Foto siguiente"><i class="ti ti-chevron-right"></i></button>
+  </div><div class="dots"><span class="dot active" onclick="event.stopPropagation();goTo(1,0)"></span><span class="dot" onclick="event.stopPropagation();goTo(1,1)"></span><span class="dot" onclick="event.stopPropagation();goTo(1,2)"></span></div>
+  </div>
+      <div class="portal-links"><a class="plink" href="https://www.argenprop.com/inmuebles/venta/villa-martelli/casa/dolares-0-150000" target="_blank">Argenprop <i class="ti ti-external-link" style="font-size:11px"></i></a><a class="plink" href="https://www.zonaprop.com.ar/casas-venta-villa-martelli-hasta-150000-dolares.html" target="_blank">Zonaprop <i class="ti ti-external-link" style="font-size:11px"></i></a></div>
+      <div class="card-body">
+        <div class="card-title">Casa de época estilo chorizo con patio y parrilla</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> A pasos de Av. Mitre · Villa Martelli</div>
+        <div class="tags">
+          <span class="tag tag-zona">Villa Martelli</span>
+          <span class="tag tag-estado">A refaccionar</span>
+          <span class="tag tag-tipo">Chorizo / PB</span>
+        </div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">Casa de época estilo chorizo en Villa Martelli, a pasos de Av. Mitre. Ingreso independiente que da a un patio con parrilla y amplio cuarto de guardado. Interior con living comedor luminoso, 2 dormitorios y cocina. Distribución lineal típica con patio central.</div>
+        </div>
+      </div>
+      <div class="price-row"><span class="price">Consultar</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn" data-id="1" data-vote="love" onclick="setVote(1,&#39;love&#39;,this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn" data-id="1" data-vote="meh" onclick="setVote(1,&#39;meh&#39;,this)">Puede ser</button>
+        <button class="vote-btn" data-id="1" data-vote="no" onclick="setVote(1,&#39;no&#39;,this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div><div id="card-wrap-2" class="card-wrap">
+    <div class="card featured" id="card-2">
+      <div class="carousel" data-id="2">
+    <a class="overlay-link" href="https://www.argenprop.com/inmuebles/venta/villa-martelli/casa/dolares-0-150000" target="_blank" aria-label="Ver publicación en Argenprop"></a>
+    <img src="file:///C:/Users/Usuario/Downloads/photos/p2_1.jpg" alt="Foto 1 de Casa PB 3 amb. a modernizar — Padilla" class="active" loading="lazy"><img src="file:///C:/Users/Usuario/Downloads/photos/p2_2.jpg" alt="Foto 2 de Casa PB 3 amb. a modernizar — Padilla" class="" loading="lazy"><div class="feat-badge"><i class="ti ti-star"></i> Destacada</div><div class="photo-count" id="pc-2">1 / 2</div>
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    <div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(2,-1)" aria-label="Foto anterior"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(2,1)" aria-label="Foto siguiente"><i class="ti ti-chevron-right"></i></button>
+  </div><div class="dots"><span class="dot active" onclick="event.stopPropagation();goTo(2,0)"></span><span class="dot" onclick="event.stopPropagation();goTo(2,1)"></span></div>
+  </div>
+      <div class="portal-links"><a class="plink" href="https://www.argenprop.com/inmuebles/venta/villa-martelli/casa/dolares-0-150000" target="_blank">Argenprop <i class="ti ti-external-link" style="font-size:11px"></i></a></div>
+      <div class="card-body">
+        <div class="card-title">Casa PB 3 amb. a modernizar — Padilla</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> Calle Padilla · Villa Martelli</div>
+        <div class="tags">
+          <span class="tag tag-zona">Villa Martelli</span>
+          <span class="tag tag-estado">A refaccionar</span>
+          <span class="tag tag-tipo">PB · lote propio</span>
+        </div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">Toda en planta baja sobre lote de 8,66 x 19 m con patio, jardín y terraza. Construcción sólida de 3 ambientes amplios. A metros de la estación Padilla. Ideal para refaccionar: estructura lineal con patio trasero.</div>
+        </div>
+      </div>
+      <div class="price-row"><span class="price">U$D 150.000</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn" data-id="2" data-vote="love" onclick="setVote(2,&#39;love&#39;,this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn" data-id="2" data-vote="meh" onclick="setVote(2,&#39;meh&#39;,this)">Puede ser</button>
+        <button class="vote-btn" data-id="2" data-vote="no" onclick="setVote(2,&#39;no&#39;,this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div><div id="card-wrap-3" class="card-wrap">
+    <div class="card featured" id="card-3">
+      <div class="carousel" data-id="3">
+    <a class="overlay-link" href="https://www.argenprop.com/inmuebles/venta/florida/casa/dolares-0-150000" target="_blank" aria-label="Ver publicación en Argenprop"></a>
+    <img src="file:///C:/Users/Usuario/Downloads/photos/p3_1.jpg" alt="Foto 1 de Casa antigua en esquina con potencial" class="active" loading="lazy"><img src="file:///C:/Users/Usuario/Downloads/photos/p3_2.jpg" alt="Foto 2 de Casa antigua en esquina con potencial" class="" loading="lazy"><img src="file:///C:/Users/Usuario/Downloads/photos/p3_3.jpg" alt="Foto 3 de Casa antigua en esquina con potencial" class="" loading="lazy"><div class="feat-badge"><i class="ti ti-star"></i> Destacada</div><div class="photo-count" id="pc-3">1 / 3</div>
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    <div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(3,-1)" aria-label="Foto anterior"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(3,1)" aria-label="Foto siguiente"><i class="ti ti-chevron-right"></i></button>
+  </div><div class="dots"><span class="dot active" onclick="event.stopPropagation();goTo(3,0)"></span><span class="dot" onclick="event.stopPropagation();goTo(3,1)"></span><span class="dot" onclick="event.stopPropagation();goTo(3,2)"></span></div>
+  </div>
+      <div class="portal-links"><a class="plink" href="https://www.argenprop.com/inmuebles/venta/florida/casa/dolares-0-150000" target="_blank">Argenprop <i class="ti ti-external-link" style="font-size:11px"></i></a><a class="plink" href="https://www.zonaprop.com.ar/casas-venta-florida-buenos-aires-hasta-150000-dolares.html" target="_blank">Zonaprop <i class="ti ti-external-link" style="font-size:11px"></i></a></div>
+      <div class="card-body">
+        <div class="card-title">Casa antigua en esquina con potencial</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> Casco histórico · Florida</div>
+        <div class="tags">
+          <span class="tag tag-zona">Florida</span>
+          <span class="tag tag-estado">A refaccionar</span>
+          <span class="tag tag-tipo">PB · esquina</span>
+        </div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">Casa de principios del siglo XX en esquina, planta baja con cuatro ambientes, patio trasero y galería. Techos altos originales, pisos de mosaicos. A cuadras del centro de Florida y la estación. Requiere refacción general.</div>
+        </div>
+      </div>
+      <div class="price-row"><span class="price">U$D 120.000</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn" data-id="3" data-vote="love" onclick="setVote(3,&#39;love&#39;,this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn" data-id="3" data-vote="meh" onclick="setVote(3,&#39;meh&#39;,this)">Puede ser</button>
+        <button class="vote-btn" data-id="3" data-vote="no" onclick="setVote(3,&#39;no&#39;,this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="section-label" style="margin-top:.25rem"><i class="ti ti-list"></i> Otras opciones</div>
+  <div class="grid" id="grid-others"><div id="card-wrap-4" class="card-wrap">
+    <div class="card" id="card-4">
+      <div class="carousel" data-id="4">
+    <a class="overlay-link" href="https://www.argenprop.com/inmuebles/venta/munro/casa/dolares-0-150000" target="_blank" aria-label="Ver publicación en Argenprop"></a>
+    <img src="file:///C:/Users/Usuario/Downloads/photos/p4_1.jpg" alt="Foto 1 de Casa tipo chorizo interior de lote — Munro" class="active" loading="lazy"><img src="file:///C:/Users/Usuario/Downloads/photos/p4_2.jpg" alt="Foto 2 de Casa tipo chorizo interior de lote — Munro" class="" loading="lazy"><div class="photo-count" id="pc-4">1 / 2</div>
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    <div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(4,-1)" aria-label="Foto anterior"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(4,1)" aria-label="Foto siguiente"><i class="ti ti-chevron-right"></i></button>
+  </div><div class="dots"><span class="dot active" onclick="event.stopPropagation();goTo(4,0)"></span><span class="dot" onclick="event.stopPropagation();goTo(4,1)"></span></div>
+  </div>
+      <div class="portal-links"><a class="plink" href="https://www.argenprop.com/inmuebles/venta/munro/casa/dolares-0-150000" target="_blank">Argenprop <i class="ti ti-external-link" style="font-size:11px"></i></a></div>
+      <div class="card-body">
+        <div class="card-title">Casa tipo chorizo interior de lote — Munro</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> Av. Constituyentes · Munro</div>
+        <div class="tags">
+          <span class="tag tag-zona">Munro</span>
+          <span class="tag tag-estado">Habitable</span>
+          <span class="tag tag-tipo">Chorizo / PB</span>
+        </div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">Casa chorizo interior de lote, planta baja con tres habitaciones en hilera, cocina, baño y patio con lavadero. Buen estado de conservación. Cerca del centro de Munro y el Belgrano Norte.</div>
+        </div>
+      </div>
+      <div class="price-row"><span class="price">U$D 110.000</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn" data-id="4" data-vote="love" onclick="setVote(4,&#39;love&#39;,this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn" data-id="4" data-vote="meh" onclick="setVote(4,&#39;meh&#39;,this)">Puede ser</button>
+        <button class="vote-btn" data-id="4" data-vote="no" onclick="setVote(4,&#39;no&#39;,this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div><div id="card-wrap-5" class="card-wrap">
+    <div class="card" id="card-5">
+      <div class="carousel" data-id="5">
+    <a class="overlay-link" href="https://www.zonaprop.com.ar/casas-venta-vicente-lopez-hasta-150000-dolares.html" target="_blank" aria-label="Ver publicación en Zonaprop"></a>
+    <img src="file:///C:/Users/Usuario/Downloads/photos/p5_1.jpg" alt="Foto 1 de Casa amplia con jardín — Vicente López" class="active" loading="lazy">
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    
+  </div>
+      <div class="portal-links"><a class="plink" href="https://www.zonaprop.com.ar/casas-venta-vicente-lopez-hasta-150000-dolares.html" target="_blank">Zonaprop <i class="ti ti-external-link" style="font-size:11px"></i></a></div>
+      <div class="card-body">
+        <div class="card-title">Casa amplia con jardín — Vicente López</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> Zona residencial · Vicente López</div>
+        <div class="tags">
+          <span class="tag tag-zona">Vicente López</span>
+          <span class="tag tag-estado">Habitable</span>
+          <span class="tag tag-tipo">PB · jardín</span>
+        </div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">Casa de planta baja con jardín delantero y trasero, living comedor, 3 ambientes, cocina americana y garaje. Construcción de los años 60 bien mantenida. Zona tranquila a pocas cuadras de las vías.</div>
+        </div>
+      </div>
+      <div class="price-row"><span class="price">U$D 145.000</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn" data-id="5" data-vote="love" onclick="setVote(5,&#39;love&#39;,this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn" data-id="5" data-vote="meh" onclick="setVote(5,&#39;meh&#39;,this)">Puede ser</button>
+        <button class="vote-btn" data-id="5" data-vote="no" onclick="setVote(5,&#39;no&#39;,this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div><div id="card-wrap-6" class="card-wrap">
+    <div class="card" id="card-6">
+      <div class="carousel" data-id="6">
+    <a class="overlay-link" href="https://www.argenprop.com/inmuebles/venta/florida/casa/dolares-0-150000" target="_blank" aria-label="Ver publicación en Argenprop"></a>
+    <img src="file:///C:/Users/Usuario/Downloads/photos/p6_1.jpg" alt="Foto 1 de PH planta baja con patio exclusivo — Florida" class="active" loading="lazy"><img src="file:///C:/Users/Usuario/Downloads/photos/p6_2.jpg" alt="Foto 2 de PH planta baja con patio exclusivo — Florida" class="" loading="lazy"><div class="photo-count" id="pc-6">1 / 2</div>
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    <div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(6,-1)" aria-label="Foto anterior"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(6,1)" aria-label="Foto siguiente"><i class="ti ti-chevron-right"></i></button>
+  </div><div class="dots"><span class="dot active" onclick="event.stopPropagation();goTo(6,0)"></span><span class="dot" onclick="event.stopPropagation();goTo(6,1)"></span></div>
+  </div>
+      <div class="portal-links"><a class="plink" href="https://www.argenprop.com/inmuebles/venta/florida/casa/dolares-0-150000" target="_blank">Argenprop <i class="ti ti-external-link" style="font-size:11px"></i></a><a class="plink" href="https://www.zonaprop.com.ar/casas-venta-florida-buenos-aires-hasta-150000-dolares.html" target="_blank">Zonaprop <i class="ti ti-external-link" style="font-size:11px"></i></a></div>
+      <div class="card-body">
+        <div class="card-title">PH planta baja con patio exclusivo — Florida</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> Zona norte · Florida</div>
+        <div class="tags">
+          <span class="tag tag-zona">Florida</span>
+          <span class="tag tag-estado">Habitable</span>
+          <span class="tag tag-tipo">PH / PB</span>
+        </div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">PH en planta baja, sin expensas, con patio exclusivo amplio. Dos ambientes, cocina independiente, baño completo. Opción económica para refaccionar a gusto. A 10 minutos de la estación Florida.</div>
+        </div>
+      </div>
+      <div class="price-row"><span class="price">U$D 95.000</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn" data-id="6" data-vote="love" onclick="setVote(6,&#39;love&#39;,this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn" data-id="6" data-vote="meh" onclick="setVote(6,&#39;meh&#39;,this)">Puede ser</button>
+        <button class="vote-btn" data-id="6" data-vote="no" onclick="setVote(6,&#39;no&#39;,this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div></div>
+
+</div>
+
+<script>
+// =====================================================================
+// DATOS — este bloque es reemplazado automáticamente por el scraper
+// =====================================================================
+const SITE_DATA = {
+  week: "22 de junio de 2026",
+  zones: "Florida · Munro · Villa Martelli",
+  budget: "U$D 150.000",
+  stats: { total: 6, range: "U$D 95k – 150k", patio: "5 / 6" },
+  props: [
+    {
+      id: 1, featured: true,
+      title: "Casa de época estilo chorizo con patio y parrilla",
+      addr: "A pasos de Av. Mitre · Villa Martelli",
+      price: "Consultar",
+      zona: "Villa Martelli", estado: "A refaccionar", tipo: "Chorizo / PB",
+      desc: "Casa de época estilo chorizo en Villa Martelli, a pasos de Av. Mitre. Ingreso independiente que da a un patio con parrilla y amplio cuarto de guardado. Interior con living comedor luminoso, 2 dormitorios y cocina. Distribución lineal típica con patio central.",
+      photos: ["photos/p1_1.jpg","photos/p1_2.jpg","photos/p1_3.jpg"],
+      links: [
+        { l: "Argenprop", u: "https://www.argenprop.com/inmuebles/venta/villa-martelli/casa/dolares-0-150000" },
+        { l: "Zonaprop", u: "https://www.zonaprop.com.ar/casas-venta-villa-martelli-hasta-150000-dolares.html" }
+      ]
+    },
+    {
+      id: 2, featured: true,
+      title: "Casa PB 3 amb. a modernizar — Padilla",
+      addr: "Calle Padilla · Villa Martelli",
+      price: "U$D 150.000",
+      zona: "Villa Martelli", estado: "A refaccionar", tipo: "PB · lote propio",
+      desc: "Toda en planta baja sobre lote de 8,66 x 19 m con patio, jardín y terraza. Construcción sólida de 3 ambientes amplios. A metros de la estación Padilla. Ideal para refaccionar: estructura lineal con patio trasero.",
+      photos: ["photos/p2_1.jpg","photos/p2_2.jpg"],
+      links: [
+        { l: "Argenprop", u: "https://www.argenprop.com/inmuebles/venta/villa-martelli/casa/dolares-0-150000" }
+      ]
+    },
+    {
+      id: 3, featured: true,
+      title: "Casa antigua en esquina con potencial",
+      addr: "Casco histórico · Florida",
+      price: "U$D 120.000",
+      zona: "Florida", estado: "A refaccionar", tipo: "PB · esquina",
+      desc: "Casa de principios del siglo XX en esquina, planta baja con cuatro ambientes, patio trasero y galería. Techos altos originales, pisos de mosaicos. A cuadras del centro de Florida y la estación. Requiere refacción general.",
+      photos: ["photos/p3_1.jpg","photos/p3_2.jpg","photos/p3_3.jpg"],
+      links: [
+        { l: "Argenprop", u: "https://www.argenprop.com/inmuebles/venta/florida/casa/dolares-0-150000" },
+        { l: "Zonaprop", u: "https://www.zonaprop.com.ar/casas-venta-florida-buenos-aires-hasta-150000-dolares.html" }
+      ]
+    },
+    {
+      id: 4, featured: false,
+      title: "Casa tipo chorizo interior de lote — Munro",
+      addr: "Av. Constituyentes · Munro",
+      price: "U$D 110.000",
+      zona: "Munro", estado: "Habitable", tipo: "Chorizo / PB",
+      desc: "Casa chorizo interior de lote, planta baja con tres habitaciones en hilera, cocina, baño y patio con lavadero. Buen estado de conservación. Cerca del centro de Munro y el Belgrano Norte.",
+      photos: ["photos/p4_1.jpg","photos/p4_2.jpg"],
+      links: [
+        { l: "Argenprop", u: "https://www.argenprop.com/inmuebles/venta/munro/casa/dolares-0-150000" }
+      ]
+    },
+    {
+      id: 5, featured: false,
+      title: "Casa amplia con jardín — Vicente López",
+      addr: "Zona residencial · Vicente López",
+      price: "U$D 145.000",
+      zona: "Vicente López", estado: "Habitable", tipo: "PB · jardín",
+      desc: "Casa de planta baja con jardín delantero y trasero, living comedor, 3 ambientes, cocina americana y garaje. Construcción de los años 60 bien mantenida. Zona tranquila a pocas cuadras de las vías.",
+      photos: ["photos/p5_1.jpg"],
+      links: [
+        { l: "Zonaprop", u: "https://www.zonaprop.com.ar/casas-venta-vicente-lopez-hasta-150000-dolares.html" }
+      ]
+    },
+    {
+      id: 6, featured: false,
+      title: "PH planta baja con patio exclusivo — Florida",
+      addr: "Zona norte · Florida",
+      price: "U$D 95.000",
+      zona: "Florida", estado: "Habitable", tipo: "PH / PB",
+      desc: "PH en planta baja, sin expensas, con patio exclusivo amplio. Dos ambientes, cocina independiente, baño completo. Opción económica para refaccionar a gusto. A 10 minutos de la estación Florida.",
+      photos: ["photos/p6_1.jpg","photos/p6_2.jpg"],
+      links: [
+        { l: "Argenprop", u: "https://www.argenprop.com/inmuebles/venta/florida/casa/dolares-0-150000" },
+        { l: "Zonaprop", u: "https://www.zonaprop.com.ar/casas-venta-florida-buenos-aires-hasta-150000-dolares.html" }
+      ]
+    }
+  ]
+};
+// =====================================================================
+
+// Init metadata
+document.getElementById('subtitle').textContent =
+  `Semana del ${SITE_DATA.week} · ${SITE_DATA.zones} · hasta ${SITE_DATA.budget}`;
+document.getElementById('m-total').textContent = SITE_DATA.stats.total;
+document.getElementById('m-range').textContent = SITE_DATA.stats.range;
+document.getElementById('m-patio').textContent = SITE_DATA.stats.patio;
+
+const votes = {}, cs = {};
+
+function spawnFloater(emoji, btnEl, anim) {
+  const rect = btnEl.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'floater';
+  el.textContent = emoji;
+  el.style.left = (rect.left + rect.width / 2 - 14) + 'px';
+  el.style.top = (rect.top - 10) + 'px';
+  el.style.animation = `${anim} 0.7s ease-out forwards`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 750);
+}
+
+function animateCard(id, animName) {
+  const wrap = document.querySelector(`#card-wrap-${id}`);
+  if (wrap) wrap.style.animation = `${animName} 0.35s ease-out forwards`;
+}
+
+function carouselHTML(p) {
+  const ph = p.photos || [];
+  const firstLink = p.links[0].u;
+  if (!ph.length) return `<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
+  const imgs = ph.map((s, i) => `<img src="${s}" alt="Foto ${i+1} de ${p.title}" class="${i===0?'active':''}" loading="lazy">`).join('');
+  const dots = ph.map((_, i) => `<span class="dot${i===0?' active':''}" onclick="event.stopPropagation();goTo(${p.id},${i})"></span>`).join('');
+  const feat = p.featured ? `<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>` : '';
+  const count = ph.length > 1 ? `<div class="photo-count" id="pc-${p.id}">1 / ${ph.length}</div>` : '';
+  const nav = ph.length > 1 ? `<div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(${p.id},-1)" aria-label="Foto anterior"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide(${p.id},1)" aria-label="Foto siguiente"><i class="ti ti-chevron-right"></i></button>
+  </div>` : '';
+  const dotRow = ph.length > 1 ? `<div class="dots">${dots}</div>` : '';
+  return `<div class="carousel" data-id="${p.id}">
+    <a class="overlay-link" href="${firstLink}" target="_blank" aria-label="Ver publicación en ${p.links[0].l}"></a>
+    ${imgs}${feat}${count}
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    ${nav}${dotRow}
+  </div>`;
+}
+
+function cardHTML(p) {
+  const links = p.links.map(l =>
+    `<a class="plink" href="${l.u}" target="_blank">${l.l} <i class="ti ti-external-link" style="font-size:11px"></i></a>`
+  ).join('');
+  const v = votes[p.id] || '';
+  return `<div id="card-wrap-${p.id}" class="card-wrap">
+    <div class="card${p.featured?' featured':''}" id="card-${p.id}">
+      ${carouselHTML(p)}
+      <div class="portal-links">${links}</div>
+      <div class="card-body">
+        <div class="card-title">${p.title}</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> ${p.addr}</div>
+        <div class="tags">
+          <span class="tag tag-zona">${p.zona}</span>
+          <span class="tag tag-estado">${p.estado}</span>
+          <span class="tag tag-tipo">${p.tipo}</span>
+        </div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">${p.desc}</div>
+        </div>
+      </div>
+      <div class="price-row"><span class="price">${p.price}</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn${v==='love'?' active-love':''}" data-id="${p.id}" data-vote="love" onclick="setVote(${p.id},'love',this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn${v==='meh'?' active-meh':''}" data-id="${p.id}" data-vote="meh" onclick="setVote(${p.id},'meh',this)">Puede ser</button>
+        <button class="vote-btn${v==='no'?' active-no':''}" data-id="${p.id}" data-vote="no" onclick="setVote(${p.id},'no',this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function goSlide(id, dir) {
+  const ph = (SITE_DATA.props.find(p=>p.id===id)||{}).photos||[];
+  if (!ph.length) return;
+  const imgs = document.querySelectorAll(`.carousel[data-id="${id}"] img`);
+  const dots = document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
+  let cur = cs[id] || 0;
+  imgs[cur].classList.remove('active'); dots[cur].classList.remove('active');
+  cur = (cur + dir + ph.length) % ph.length; cs[id] = cur;
+  imgs[cur].classList.add('active'); dots[cur].classList.add('active');
+  const pc = document.getElementById(`pc-${id}`);
+  if (pc) pc.textContent = `${cur+1} / ${ph.length}`;
+}
+
+function goTo(id, idx) {
+  const ph = (SITE_DATA.props.find(p=>p.id===id)||{}).photos||[];
+  if (!ph.length) return;
+  const imgs = document.querySelectorAll(`.carousel[data-id="${id}"] img`);
+  const dots = document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
+  let cur = cs[id] || 0;
+  imgs[cur].classList.remove('active'); dots[cur].classList.remove('active');
+  cs[id] = idx; imgs[idx].classList.add('active'); dots[idx].classList.add('active');
+  const pc = document.getElementById(`pc-${id}`);
+  if (pc) pc.textContent = `${idx+1} / ${ph.length}`;
+}
+
+function setVote(id, val, btnEl) {
+  const prev = votes[id];
+  const isUndo = prev === val;
+  if (isUndo) { delete votes[id]; render(); return; }
+  votes[id] = val;
+  if (val === 'love') spawnFloater('❤️', btnEl, 'float-up');
+  else if (val === 'meh') spawnFloater('🤔', btnEl, 'float-upright');
+  else if (val === 'no') spawnFloater('✕', btnEl, 'float-right');
+  const wasUnclassified = !prev;
+  if (wasUnclassified) {
+    animateCard(id, val === 'no' ? 'slide-right' : 'slide-up');
+    setTimeout(() => render(), 360);
+  } else {
+    render();
+  }
+}
+
+function render() {
+  const props = SITE_DATA.props;
+  const loved = props.filter(p => votes[p.id] === 'love');
+  const meh   = props.filter(p => votes[p.id] === 'meh');
+  const hidden = new Set(props.filter(p => votes[p.id] === 'no').map(p => p.id));
+
+  document.getElementById('count-love').textContent = loved.length || '–';
+  document.getElementById('count-meh').textContent  = meh.length  || '–';
+
+  const secLove = document.getElementById('sec-love');
+  const secMeh  = document.getElementById('sec-meh');
+  secLove.style.display = loved.length ? 'block' : 'none';
+  secMeh.style.display  = meh.length  ? 'block' : 'none';
+  if (loved.length) document.getElementById('grid-love').innerHTML = loved.map(cardHTML).join('');
+  if (meh.length)   document.getElementById('grid-meh').innerHTML  = meh.map(cardHTML).join('');
+
+  const feat   = props.filter(p => p.featured && !votes[p.id] && !hidden.has(p.id));
+  const others = props.filter(p => !p.featured && !votes[p.id] && !hidden.has(p.id));
+  document.getElementById('grid-featured').innerHTML = feat.length
+    ? feat.map(cardHTML).join('')
+    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+  document.getElementById('grid-others').innerHTML = others.length
+    ? others.map(cardHTML).join('')
+    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+}
+
+render();
+</script>
+
+
+</body></html>
