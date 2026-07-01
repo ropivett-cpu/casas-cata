@@ -1,0 +1,35 @@
+name: Actualizar casas diariamente
+
+on:
+  schedule:
+    - cron: '0 10 * * *'   # todos los días a las 10:00 UTC (7:00 AM Argentina)
+  workflow_dispatch:         # también permite correrlo a mano desde GitHub
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Correr scraper
+        run: python scraper.py
+
+      - name: Subir cambios a GitHub
+        run: |
+          git config user.name "casas-cata-bot"
+          git config user.email "bot@casas-cata"
+          git add index.html photos/
+          git diff --staged --quiet || git commit -m "Actualización automática $(date +'%Y-%m-%d')"
+          git push
