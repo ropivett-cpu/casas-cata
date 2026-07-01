@@ -1,0 +1,491 @@
+#!/usr/bin/env python3
+"""
+Casas para Cata — scraper diario
+Busca en Argenprop y Zonaprop, descarga fotos y regenera index.html
+"""
+
+import os, json, time, random, hashlib, re, shutil
+from datetime import date
+from pathlib import Path
+from urllib.parse import urlparse
+
+import requests
+from bs4 import BeautifulSoup
+
+# ── Configuración ────────────────────────────────────────────────────────────
+
+ZONAS = ["villa-martelli", "florida", "munro", "vicente-lopez"]
+MAX_PROPS = 20          # máximo de propiedades en el sitio
+MAX_PHOTOS = 5          # fotos por propiedad
+PHOTOS_DIR = Path("photos")
+DELAY = (2, 5)          # segundos de espera entre requests (min, max)
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "es-AR,es;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+def get(url, retries=3):
+    for i in range(retries):
+        try:
+            time.sleep(random.uniform(*DELAY))
+            r = requests.get(url, headers=HEADERS, timeout=20)
+            r.raise_for_status()
+            return r
+        except Exception as e:
+            print(f"  ⚠ intento {i+1} fallido para {url}: {e}")
+            time.sleep(5)
+    return None
+
+def slugify(text):
+    text = text.lower().strip()
+    text = re.sub(r'[áàä]','a', text)
+    text = re.sub(r'[éèë]','e', text)
+    text = re.sub(r'[íìï]','i', text)
+    text = re.sub(r'[óòö]','o', text)
+    text = re.sub(r'[úùü]','u', text)
+    text = re.sub(r'[ñ]','n', text)
+    text = re.sub(r'[^a-z0-9]+','-', text)
+    return text.strip('-')[:50]
+
+def photo_id(url):
+    return hashlib.md5(url.encode()).hexdigest()[:10]
+
+def download_photo(url, prop_id, idx):
+    ext = Path(urlparse(url).path).suffix or ".jpg"
+    filename = PHOTOS_DIR / f"p{prop_id}_{idx}{ext}"
+    if filename.exists():
+        return str(filename)
+    r = get(url)
+    if r and r.content:
+        filename.write_bytes(r.content)
+        print(f"    📷 foto {idx}: {filename.name}")
+        return str(filename)
+    return None
+
+# ── Argenprop ────────────────────────────────────────────────────────────────
+
+def scrape_argenprop():
+    props = []
+    for zona in ZONAS:
+        url = f"https://www.argenprop.com/casas-y-ph/venta/{zona}--precio-dolares-max-150000"
+        print(f"\n🔍 Argenprop → {zona}")
+        r = get(url)
+        if not r:
+            continue
+        soup = BeautifulSoup(r.text, "html.parser")
+        listings = soup.select(".listing__item, .card, [class*='listing-card']")
+        print(f"   {len(listings)} resultados")
+        for item in listings[:10]:
+            try:
+                # Título
+                title_el = item.select_one("h2, h3, .card__title, [class*='title']")
+                title = title_el.get_text(strip=True) if title_el else ""
+                if not title:
+                    continue
+                # Dirección
+                addr_el = item.select_one(".card__address, [class*='address'], .card__location")
+                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-", " ").title()
+                # Precio
+                price_el = item.select_one(".card__price, [class*='price']")
+                price = price_el.get_text(strip=True) if price_el else "Consultar"
+                price = re.sub(r'\s+', ' ', price).strip()
+                # Link
+                link_el = item.select_one("a[href]")
+                link = ""
+                if link_el:
+                    href = link_el.get("href","")
+                    link = href if href.startswith("http") else f"https://www.argenprop.com{href}"
+                # Descripción
+                desc_el = item.select_one("[class*='desc'], [class*='detail'], p")
+                desc = desc_el.get_text(strip=True) if desc_el else ""
+                # Fotos
+                photos = []
+                for img in item.select("img[src], img[data-src]")[:MAX_PHOTOS]:
+                    src = img.get("data-src") or img.get("src","")
+                    if src and "http" in src and not "logo" in src.lower():
+                        photos.append(src)
+                prop_id = f"ar-{photo_id(link or title)}"
+                props.append({
+                    "id": prop_id,
+                    "title": title,
+                    "addr": f"{addr} · {zona.replace('-',' ').title()}",
+                    "price": price,
+                    "zona": zona.replace("-"," ").title(),
+                    "estado": "A confirmar",
+                    "tipo": "Casa / PB",
+                    "desc": desc or "Ver descripción completa en el portal.",
+                    "photo_urls": photos,
+                    "photos": [],
+                    "featured": False,
+                    "links": [{"l": "Argenprop", "u": link}] if link else []
+                })
+            except Exception as e:
+                print(f"   ⚠ error parseando item: {e}")
+    return props
+
+# ── Zonaprop ─────────────────────────────────────────────────────────────────
+
+def scrape_zonaprop():
+    props = []
+    ZONA_MAP = {
+        "villa-martelli": "villa-martelli",
+        "florida": "florida-buenos-aires",
+        "munro": "munro",
+        "vicente-lopez": "vicente-lopez"
+    }
+    for zona, zona_slug in ZONA_MAP.items():
+        url = f"https://www.zonaprop.com.ar/casas-venta-{zona_slug}-hasta-150000-dolares.html"
+        print(f"\n🔍 Zonaprop → {zona}")
+        r = get(url)
+        if not r:
+            continue
+        soup = BeautifulSoup(r.text, "html.parser")
+        listings = soup.select("[class*='postingCard'], [class*='posting-card'], article")
+        print(f"   {len(listings)} resultados")
+        for item in listings[:10]:
+            try:
+                title_el = item.select_one("h2, h3, [class*='title']")
+                title = title_el.get_text(strip=True) if title_el else ""
+                if not title:
+                    continue
+                addr_el = item.select_one("[class*='address'], [class*='location']")
+                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
+                price_el = item.select_one("[class*='price']")
+                price = price_el.get_text(strip=True) if price_el else "Consultar"
+                price = re.sub(r'\s+', ' ', price).strip()
+                link_el = item.select_one("a[href]")
+                link = ""
+                if link_el:
+                    href = link_el.get("href","")
+                    link = href if href.startswith("http") else f"https://www.zonaprop.com.ar{href}"
+                desc_el = item.select_one("[class*='desc'], [class*='detail']")
+                desc = desc_el.get_text(strip=True) if desc_el else ""
+                photos = []
+                for img in item.select("img[src], img[data-src]")[:MAX_PHOTOS]:
+                    src = img.get("data-src") or img.get("src","")
+                    if src and "http" in src and not "logo" in src.lower():
+                        photos.append(src)
+                prop_id = f"zp-{photo_id(link or title)}"
+                props.append({
+                    "id": prop_id,
+                    "title": title,
+                    "addr": f"{addr} · {zona.replace('-',' ').title()}",
+                    "price": price,
+                    "zona": zona.replace("-"," ").title(),
+                    "estado": "A confirmar",
+                    "tipo": "Casa / PB",
+                    "desc": desc or "Ver descripción completa en el portal.",
+                    "photo_urls": photos,
+                    "photos": [],
+                    "featured": False,
+                    "links": [{"l": "Zonaprop", "u": link}] if link else []
+                })
+            except Exception as e:
+                print(f"   ⚠ error parseando item: {e}")
+    return props
+
+# ── Deduplicar ───────────────────────────────────────────────────────────────
+
+def dedup(props):
+    seen = set()
+    result = []
+    for p in props:
+        key = slugify(p["title"])[:40]
+        if key not in seen:
+            seen.add(key)
+            result.append(p)
+    return result
+
+# ── Descargar fotos ───────────────────────────────────────────────────────────
+
+def download_all_photos(props):
+    PHOTOS_DIR.mkdir(exist_ok=True)
+    for p in props:
+        downloaded = []
+        for i, url in enumerate(p.get("photo_urls", [])[:MAX_PHOTOS], 1):
+            path = download_photo(url, p["id"], i)
+            if path:
+                downloaded.append(path)
+        p["photos"] = downloaded
+    return props
+
+# ── Generar HTML ──────────────────────────────────────────────────────────────
+
+def gen_html(props, week_str):
+    total = len(props)
+    prices = []
+    for p in props:
+        m = re.search(r'[\d\.]+', p["price"].replace(",",""))
+        if m:
+            try: prices.append(int(m.group().replace(".","")[:6]))
+            except: pass
+    price_range = f"U$D {min(prices)//1000}k – {max(prices)//1000}k" if prices else "–"
+    patio = sum(1 for p in props if "patio" in p["desc"].lower() or "patio" in p["title"].lower())
+    patio_str = f"{patio} / {total}"
+
+    # Mark first 3 as featured
+    for i, p in enumerate(props):
+        p["featured"] = i < 3
+
+    props_js = json.dumps(props, ensure_ascii=False, indent=2)
+
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casas para Cata</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    :root {{
+      --bg:#F7F6F3;--bg2:#EDECEA;--bg3:#E4E2DE;
+      --text:#1A1916;--text2:#5C5A55;--text3:#9A9891;--border:#D8D6D1;
+      --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#085041;--green-border:#5DCAA5;
+      --amber:#EF9F27;--amber-bg:#FAEEDA;--amber-text:#633806;--amber-border:#EF9F27;
+      --purple:#7B74E0;--purple-bg:#EEEDFE;--purple-text:#3C3489;--purple-border:#AFA9EC;
+      --red-bg:#FCEBEB;--red-text:#501313;--red-border:#F09595;
+      --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
+    }}
+    body {{ background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;min-height:100vh; }}
+    .page {{ max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem; }}
+    .site-header {{ margin-bottom:2rem; }}
+    .site-header h1 {{ font-size:26px;font-weight:600;letter-spacing:-0.02em; }}
+    .site-header p {{ font-size:13px;color:var(--text3);margin-top:4px; }}
+    .metrics {{ display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:2.5rem; }}
+    .metric {{ background:var(--bg2);border-radius:var(--radius-md);padding:.85rem 1rem; }}
+    .metric-label {{ font-size:11px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em; }}
+    .metric-val {{ font-size:24px;font-weight:600;color:var(--text); }}
+    .metric-val.sm {{ font-size:13px;font-weight:500;padding-top:4px; }}
+    .section-label {{ font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:6px; }}
+    .grid {{ display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem;margin-bottom:2.5rem; }}
+    @media(max-width:480px){{.grid{{grid-template-columns:1fr;}}}}
+    .card-wrap {{ border-radius:var(--radius-lg);overflow:hidden; }}
+    .card {{ background:#fff;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column; }}
+    .card.featured {{ border:2px solid var(--green); }}
+    .carousel {{ position:relative;width:100%;aspect-ratio:16/10;background:var(--bg2);overflow:hidden;cursor:pointer; }}
+    .carousel a.overlay-link {{ position:absolute;inset:0;z-index:5;display:block; }}
+    .carousel img {{ position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s; }}
+    .carousel img.active {{ opacity:1; }}
+    .carousel-placeholder {{ position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3); }}
+    .carousel-nav {{ position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;pointer-events:none;z-index:10; }}
+    .nav-btn {{ width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px; }}
+    .nav-btn:hover {{ background:rgba(0,0,0,0.7); }}
+    .dots {{ position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:10;pointer-events:none; }}
+    .dot {{ width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);pointer-events:all;cursor:pointer;transition:background .2s; }}
+    .dot.active {{ background:#fff; }}
+    .photo-count {{ position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);color:#fff;font-size:11px;padding:3px 8px;border-radius:20px;z-index:10;pointer-events:none; }}
+    .open-badge {{ position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;padding:4px 9px;border-radius:var(--radius-sm);z-index:10;pointer-events:none;display:flex;align-items:center;gap:4px; }}
+    .feat-badge {{ position:absolute;top:10px;left:10px;background:var(--green);color:#fff;font-size:11px;padding:3px 9px;border-radius:20px;z-index:10;pointer-events:none;display:flex;align-items:center;gap:4px; }}
+    .portal-links {{ display:flex;gap:6px;padding:.6rem 1rem;border-bottom:0.5px solid var(--border);flex-wrap:wrap; }}
+    .plink {{ font-size:12px;color:#2563eb;text-decoration:none;border:0.5px solid #93c5fd;border-radius:var(--radius-sm);padding:3px 9px;display:flex;align-items:center;gap:4px; }}
+    .plink:hover {{ background:#eff6ff; }}
+    .card-body {{ padding:.85rem 1.25rem;display:flex;flex-direction:column;gap:8px;flex:1; }}
+    .card-title {{ font-size:15px;font-weight:600;color:var(--text);line-height:1.35; }}
+    .card-addr {{ font-size:13px;color:var(--text2);display:flex;align-items:center;gap:4px; }}
+    .tags {{ display:flex;flex-wrap:wrap;gap:5px; }}
+    .tag {{ font-size:11px;padding:3px 9px;border-radius:20px;border:0.5px solid; }}
+    .tag-zona {{ background:var(--green-bg);color:var(--green-text);border-color:var(--green-border); }}
+    .tag-estado {{ background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border); }}
+    .tag-tipo {{ background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border); }}
+    .desc-label {{ font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px; }}
+    .desc-block {{ background:var(--bg2);border-radius:var(--radius-sm);padding:.6rem .85rem;font-size:12px;color:var(--text2);line-height:1.65;border-left:2px solid var(--border); }}
+    .price-row {{ display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--border);padding:.75rem 1.25rem; }}
+    .price {{ font-size:15px;font-weight:600;color:var(--text); }}
+    .vote-bar {{ border-top:0.5px solid var(--border);padding:.6rem 1.25rem;display:flex;align-items:center;gap:7px;flex-wrap:wrap; }}
+    .vote-label {{ font-size:12px;color:var(--text3);margin-right:2px; }}
+    .vote-btn {{ font-size:12px;padding:4px 11px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:4px;transition:transform .1s; }}
+    .vote-btn:active {{ transform:scale(0.95); }}
+    .vote-btn:hover {{ background:var(--bg2); }}
+    .vote-btn.active-love {{ background:var(--green-bg);color:var(--green-text);border-color:var(--green-border); }}
+    .vote-btn.active-meh {{ background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border); }}
+    .vote-btn.active-no {{ background:var(--red-bg);color:var(--red-text);border-color:var(--red-border); }}
+    .divider {{ border:none;border-top:0.5px solid var(--border);margin-bottom:2rem; }}
+    .empty-state {{ background:var(--bg2);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;font-size:13px;color:var(--text3);margin-bottom:2rem;display:flex;align-items:center;gap:8px; }}
+    .floater {{ position:fixed;pointer-events:none;font-size:28px;z-index:9999; }}
+    @keyframes float-up {{ 0%{{opacity:1;transform:translateY(0) scale(1)}} 100%{{opacity:0;transform:translateY(-120px) scale(1.4)}} }}
+    @keyframes float-right {{ 0%{{opacity:1;transform:translateX(0) scale(1)}} 100%{{opacity:0;transform:translateX(120px) scale(1.4)}} }}
+    @keyframes float-upright {{ 0%{{opacity:1;transform:translate(0,0) scale(1)}} 100%{{opacity:0;transform:translate(60px,-90px) scale(1.2)}} }}
+    @keyframes slide-up {{ 0%{{opacity:1;transform:translateY(0)}} 100%{{opacity:0;transform:translateY(-30px)}} }}
+    @keyframes slide-right {{ 0%{{opacity:1;transform:translateX(0)}} 100%{{opacity:0;transform:translateX(60px)}} }}
+    @media(prefers-reduced-motion:reduce){{.floater,.card-wrap{{animation:none!important;}}}}
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <h1>Casas para Cata</h1>
+    <p>{week_str} · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
+  </header>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val">{total}</div></div>
+    <div class="metric"><div class="metric-label">Rango</div><div class="metric-val sm">{price_range}</div></div>
+    <div class="metric"><div class="metric-label">Con patio</div><div class="metric-val">{patio_str}</div></div>
+    <div class="metric"><div class="metric-label">Favoritas</div><div class="metric-val" id="count-love">–</div></div>
+    <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" id="count-meh">–</div></div>
+  </div>
+  <div id="sec-love" style="display:none">
+    <div class="section-label"><i class="ti ti-heart"></i> Favoritas</div>
+    <div class="grid" id="grid-love"></div>
+    <hr class="divider">
+  </div>
+  <div id="sec-meh" style="display:none">
+    <div class="section-label"><i class="ti ti-clock"></i> Posibles</div>
+    <div class="grid" id="grid-meh"></div>
+    <hr class="divider">
+  </div>
+  <div class="section-label"><i class="ti ti-star"></i> Destacadas</div>
+  <div class="grid" id="grid-featured"></div>
+  <div class="section-label" style="margin-top:.25rem"><i class="ti ti-list"></i> Otras opciones</div>
+  <div class="grid" id="grid-others"></div>
+</div>
+<script>
+const PROPS = {props_js};
+const votes={{}}, cs={{}};
+
+function spawnFloater(emoji,btnEl,anim){{
+  const rect=btnEl.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='floater';el.textContent=emoji;
+  el.style.left=(rect.left+rect.width/2-14)+'px';
+  el.style.top=(rect.top-10)+'px';
+  el.style.animation=`${{anim}} 0.7s ease-out forwards`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),750);
+}}
+function animateCard(id,animName){{
+  const wrap=document.querySelector(`#card-wrap-${{id}}`);
+  if(wrap)wrap.style.animation=`${{animName}} 0.35s ease-out forwards`;
+}}
+function carouselHTML(p){{
+  const ph=p.photos||[];
+  const firstLink=(p.links&&p.links[0])?p.links[0].u:'#';
+  if(!ph.length)return`<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
+  const imgs=ph.map((s,i)=>`<img src="${{s}}" alt="Foto ${{i+1}}" class="${{i===0?'active':''}}" loading="lazy">`).join('');
+  const dots=ph.length>1?ph.map((_,i)=>`<span class="dot${{i===0?' active':''}}" onclick="event.stopPropagation();goTo('${{p.id}}',${{i}})"></span>`).join(''):'';
+  const feat=p.featured?`<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>`:'';
+  const count=ph.length>1?`<div class="photo-count" id="pc-${{p.id}}">1 / ${{ph.length}}</div>`:'';
+  const nav=ph.length>1?`<div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${{p.id}}',-1)"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${{p.id}}',1)"><i class="ti ti-chevron-right"></i></button>
+  </div><div class="dots">${{dots}}</div>`:'';
+  return`<div class="carousel" data-id="${{p.id}}">
+    <a class="overlay-link" href="${{firstLink}}" target="_blank"></a>
+    ${{imgs}}${{feat}}${{count}}
+    <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
+    ${{nav}}
+  </div>`;
+}}
+function cardHTML(p){{
+  const links=(p.links||[]).map(l=>`<a class="plink" href="${{l.u}}" target="_blank">${{l.l}} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
+  const v=votes[p.id]||'';
+  return`<div id="card-wrap-${{p.id}}" class="card-wrap">
+    <div class="card${{p.featured?' featured':''}}" id="card-${{p.id}}">
+      ${{carouselHTML(p)}}
+      <div class="portal-links">${{links}}</div>
+      <div class="card-body">
+        <div class="card-title">${{p.title}}</div>
+        <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> ${{p.addr}}</div>
+        <div class="tags">
+          <span class="tag tag-zona">${{p.zona}}</span>
+          <span class="tag tag-estado">${{p.estado}}</span>
+          <span class="tag tag-tipo">${{p.tipo}}</span>
+        </div>
+        <div><div class="desc-label">Descripción del portal</div>
+        <div class="desc-block">${{p.desc}}</div></div>
+      </div>
+      <div class="price-row"><span class="price">${{p.price}}</span></div>
+      <div class="vote-bar">
+        <span class="vote-label">¿Qué te parece?</span>
+        <button class="vote-btn${{v==='love'?' active-love':''}}" data-id="${{p.id}}" data-vote="love" onclick="setVote('${{p.id}}','love',this)"><i class="ti ti-heart"></i> Me encanta</button>
+        <button class="vote-btn${{v==='meh'?' active-meh':''}}" data-id="${{p.id}}" data-vote="meh" onclick="setVote('${{p.id}}','meh',this)">Puede ser</button>
+        <button class="vote-btn${{v==='no'?' active-no':''}}" data-id="${{p.id}}" data-vote="no" onclick="setVote('${{p.id}}','no',this)"><i class="ti ti-x"></i> No</button>
+      </div>
+    </div>
+  </div>`;
+}}
+function goSlide(id,dir){{
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cur=(cur+dir+ph.length)%ph.length;cs[id]=cur;
+  imgs[cur].classList.add('active');if(dots[cur])dots[cur].classList.add('active');
+  const pc=document.getElementById(`pc-${{id}}`);if(pc)pc.textContent=`${{cur+1}} / ${{ph.length}}`;
+}}
+function goTo(id,idx){{
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cs[id]=idx;imgs[idx].classList.add('active');if(dots[idx])dots[idx].classList.add('active');
+  const pc=document.getElementById(`pc-${{id}}`);if(pc)pc.textContent=`${{idx+1}} / ${{ph.length}}`;
+}}
+function setVote(id,val,btnEl){{
+  const prev=votes[id];
+  if(prev===val){{delete votes[id];render();return;}}
+  votes[id]=val;
+  if(val==='love')spawnFloater('❤️',btnEl,'float-up');
+  else if(val==='meh')spawnFloater('🤔',btnEl,'float-upright');
+  else spawnFloater('✕',btnEl,'float-right');
+  if(!prev){{animateCard(id,val==='no'?'slide-right':'slide-up');setTimeout(()=>render(),360);}}
+  else render();
+}}
+function render(){{
+  const loved=PROPS.filter(p=>votes[p.id]==='love');
+  const meh=PROPS.filter(p=>votes[p.id]==='meh');
+  const hidden=new Set(PROPS.filter(p=>votes[p.id]==='no').map(p=>p.id));
+  document.getElementById('count-love').textContent=loved.length||'–';
+  document.getElementById('count-meh').textContent=meh.length||'–';
+  const sl=document.getElementById('sec-love');const sm=document.getElementById('sec-meh');
+  sl.style.display=loved.length?'block':'none';
+  sm.style.display=meh.length?'block':'none';
+  if(loved.length)document.getElementById('grid-love').innerHTML=loved.map(cardHTML).join('');
+  if(meh.length)document.getElementById('grid-meh').innerHTML=meh.map(cardHTML).join('');
+  const feat=PROPS.filter(p=>p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  const others=PROPS.filter(p=>!p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  document.getElementById('grid-featured').innerHTML=feat.length?feat.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+  document.getElementById('grid-others').innerHTML=others.length?others.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+}}
+render();
+</script>
+</body>
+</html>"""
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def main():
+    print("🏠 Casas para Cata — scraper iniciando\n")
+
+    props = []
+    props += scrape_argenprop()
+    props += scrape_zonaprop()
+
+    print(f"\n📦 Total antes de deduplicar: {len(props)}")
+    props = dedup(props)
+    props = props[:MAX_PROPS]
+    print(f"✅ Después de deduplicar: {len(props)}")
+
+    print("\n📷 Descargando fotos...")
+    props = download_all_photos(props)
+
+    week_str = date.today().strftime("%-d de %B de %Y").lower()
+    week_str = week_str[0].upper() + week_str[1:]
+
+    print("\n📝 Generando index.html...")
+    html = gen_html(props, week_str)
+    Path("index.html").write_text(html, encoding="utf-8")
+
+    print("\n✅ Listo. index.html generado con", len(props), "propiedades.")
+
+if __name__ == "__main__":
+    main()
