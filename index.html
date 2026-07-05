@@ -18,49 +18,27 @@
     }
     body { background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;min-height:100vh; }
     .page { max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem; }
-
-    /* Header */
-    .site-header { margin-bottom:2rem; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; }
+    .site-header { margin-bottom:2rem; }
     .site-header h1 { font-size:26px;font-weight:600;letter-spacing:-0.02em; }
     .site-header p { font-size:13px;color:var(--text3);margin-top:4px; }
-    .mis-votos-btn {
-      display:flex;align-items:center;gap:6px;
-      background:var(--text);color:#fff;
-      font-size:13px;font-weight:500;
-      padding:8px 14px;border-radius:var(--radius-md);
-      border:none;cursor:pointer;white-space:nowrap;
-      text-decoration:none;
-    }
-    .mis-votos-btn:hover { background:#333; }
-
-    /* Metrics */
     .metrics { display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:2.5rem; }
     .metric { background:var(--bg2);border-radius:var(--radius-md);padding:.85rem 1rem; }
     .metric-label { font-size:11px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em; }
     .metric-val { font-size:24px;font-weight:600;color:var(--text); }
     .metric-val.sm { font-size:13px;font-weight:500;padding-top:4px; }
-
-    /* Section labels */
     .section-label { font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:6px; }
-
-    /* Grid */
     .grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem;margin-bottom:2.5rem; }
-    @media(max-width:480px){ .grid { grid-template-columns:1fr; } }
-
-    /* Card */
+    @media(max-width:480px){.grid{grid-template-columns:1fr;}}
     .card-wrap { border-radius:var(--radius-lg);overflow:hidden; }
     .card { background:#fff;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column; }
     .card.featured { border:2px solid var(--green); }
-
-    /* Carousel */
-    .carousel { position:relative;width:100%;aspect-ratio:16/10;background:var(--bg2);overflow:hidden; }
+    .carousel { position:relative;width:100%;aspect-ratio:16/10;background:var(--bg2);overflow:hidden;cursor:pointer; }
     .carousel a.overlay-link { position:absolute;inset:0;z-index:5;display:block; }
     .carousel img { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s; }
     .carousel img.active { opacity:1; }
     .carousel-placeholder { position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3); }
-    .carousel-placeholder i { font-size:36px; }
     .carousel-nav { position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;pointer-events:none;z-index:10; }
-    .nav-btn { width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;transition:background .15s; }
+    .nav-btn { width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px; }
     .nav-btn:hover { background:rgba(0,0,0,0.7); }
     .dots { position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:10;pointer-events:none; }
     .dot { width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);pointer-events:all;cursor:pointer;transition:background .2s; }
@@ -68,13 +46,9 @@
     .photo-count { position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);color:#fff;font-size:11px;padding:3px 8px;border-radius:20px;z-index:10;pointer-events:none; }
     .open-badge { position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;padding:4px 9px;border-radius:var(--radius-sm);z-index:10;pointer-events:none;display:flex;align-items:center;gap:4px; }
     .feat-badge { position:absolute;top:10px;left:10px;background:var(--green);color:#fff;font-size:11px;padding:3px 9px;border-radius:20px;z-index:10;pointer-events:none;display:flex;align-items:center;gap:4px; }
-
-    /* Portal links */
     .portal-links { display:flex;gap:6px;padding:.6rem 1rem;border-bottom:0.5px solid var(--border);flex-wrap:wrap; }
     .plink { font-size:12px;color:#2563eb;text-decoration:none;border:0.5px solid #93c5fd;border-radius:var(--radius-sm);padding:3px 9px;display:flex;align-items:center;gap:4px; }
     .plink:hover { background:#eff6ff; }
-
-    /* Card body */
     .card-body { padding:.85rem 1.25rem;display:flex;flex-direction:column;gap:8px;flex:1; }
     .card-title { font-size:15px;font-weight:600;color:var(--text);line-height:1.35; }
     .card-addr { font-size:13px;color:var(--text2);display:flex;align-items:center;gap:4px; }
@@ -83,18 +57,10 @@
     .tag-zona { background:var(--green-bg);color:var(--green-text);border-color:var(--green-border); }
     .tag-estado { background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border); }
     .tag-tipo { background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border); }
-
-    /* Description with truncation */
     .desc-label { font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px; }
     .desc-block { background:var(--bg2);border-radius:var(--radius-sm);padding:.6rem .85rem;font-size:12px;color:var(--text2);line-height:1.65;border-left:2px solid var(--border); }
-    .desc-text { display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden; }
-    .desc-text.expanded { display:block;overflow:visible; }
-    .ver-mas { font-size:11px;color:var(--green-text);cursor:pointer;margin-top:4px;display:inline-block;font-weight:500;background:none;border:none;padding:0; }
-
     .price-row { display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--border);padding:.75rem 1.25rem; }
     .price { font-size:15px;font-weight:600;color:var(--text); }
-
-    /* Vote bar */
     .vote-bar { border-top:0.5px solid var(--border);padding:.6rem 1.25rem;display:flex;align-items:center;gap:7px;flex-wrap:wrap; }
     .vote-label { font-size:12px;color:var(--text3);margin-right:2px; }
     .vote-btn { font-size:12px;padding:4px 11px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:4px;transition:transform .1s; }
@@ -103,176 +69,234 @@
     .vote-btn.active-love { background:var(--green-bg);color:var(--green-text);border-color:var(--green-border); }
     .vote-btn.active-meh { background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border); }
     .vote-btn.active-no { background:var(--red-bg);color:var(--red-text);border-color:var(--red-border); }
-
     .divider { border:none;border-top:0.5px solid var(--border);margin-bottom:2rem; }
     .empty-state { background:var(--bg2);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;font-size:13px;color:var(--text3);margin-bottom:2rem;display:flex;align-items:center;gap:8px; }
-
-    /* Floater animations */
     .floater { position:fixed;pointer-events:none;font-size:28px;z-index:9999; }
     @keyframes float-up { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-120px) scale(1.4)} }
     @keyframes float-right { 0%{opacity:1;transform:translateX(0) scale(1)} 100%{opacity:0;transform:translateX(120px) scale(1.4)} }
     @keyframes float-upright { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(60px,-90px) scale(1.2)} }
     @keyframes slide-up { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-30px)} }
     @keyframes slide-right { 0%{opacity:1;transform:translateX(0)} 100%{opacity:0;transform:translateX(60px)} }
-    @media(prefers-reduced-motion:reduce){ .floater,.card-wrap{animation:none!important;} }
-
-    /* Votos modal */
-    .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;overflow-y:auto;padding:2rem 1rem; }
-    .modal-overlay.open { display:block; }
-    .modal { background:var(--bg);border-radius:var(--radius-lg);max-width:800px;margin:0 auto;overflow:hidden; }
-    .modal-header { display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10; }
-    .modal-header h2 { font-size:18px;font-weight:600; }
-    .modal-close { background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;display:flex;align-items:center; }
-    .modal-close:hover { color:var(--text); }
-    .modal-body { padding:1.5rem; }
-    .modal-section-label { font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:6px; }
-    .modal-list { display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem; }
-    .modal-item { background:#fff;border:0.5px solid var(--border);border-radius:var(--radius-md);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem; }
-    .modal-item-info { flex:1;min-width:0; }
-    .modal-item-title { font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.3; }
-    .modal-item-addr { font-size:12px;color:var(--text3); }
-    .modal-item-price { font-size:13px;font-weight:600;color:var(--text);margin-top:4px; }
-    .modal-item-links { display:flex;flex-direction:column;gap:5px;flex-shrink:0; }
-    .modal-link { font-size:12px;color:#2563eb;text-decoration:none;border:0.5px solid #93c5fd;border-radius:var(--radius-sm);padding:4px 10px;display:flex;align-items:center;gap:4px;white-space:nowrap; }
-    .modal-link:hover { background:#eff6ff; }
-    .modal-empty { font-size:13px;color:var(--text3);margin-bottom:2rem; }
-    .modal-item.love-border { border-left:3px solid var(--green); }
-    .modal-item.meh-border { border-left:3px solid var(--amber); }
+    @media(prefers-reduced-motion:reduce){.floater,.card-wrap{animation:none!important;}}
   </style>
 </head>
 <body>
 <div class="page">
-
   <header class="site-header">
-    <div>
-      <h1>Casas para Cata</h1>
-      <p id="subtitle">Cargando...</p>
-    </div>
-    <button class="mis-votos-btn" onclick="openModal()">
-      <i class="ti ti-heart"></i> Mis votos
-    </button>
+    <h1>Casas para Cata</h1>
+    <p>5 de july de 2026 · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
   </header>
-
   <div class="metrics">
-    <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val" id="m-total">–</div></div>
-    <div class="metric"><div class="metric-label">Rango</div><div class="metric-val sm" id="m-range">–</div></div>
-    <div class="metric"><div class="metric-label">Con patio</div><div class="metric-val" id="m-patio">–</div></div>
+    <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val">8</div></div>
+    <div class="metric"><div class="metric-label">Rango</div><div class="metric-val sm">U$D 175k – 580k</div></div>
+    <div class="metric"><div class="metric-label">Con patio</div><div class="metric-val">2 / 8</div></div>
     <div class="metric"><div class="metric-label">Favoritas</div><div class="metric-val" id="count-love">–</div></div>
     <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" id="count-meh">–</div></div>
   </div>
-
   <div id="sec-love" style="display:none">
     <div class="section-label"><i class="ti ti-heart"></i> Favoritas</div>
     <div class="grid" id="grid-love"></div>
     <hr class="divider">
   </div>
-
   <div id="sec-meh" style="display:none">
     <div class="section-label"><i class="ti ti-clock"></i> Posibles</div>
     <div class="grid" id="grid-meh"></div>
     <hr class="divider">
   </div>
-
   <div class="section-label"><i class="ti ti-star"></i> Destacadas</div>
   <div class="grid" id="grid-featured"></div>
-
   <div class="section-label" style="margin-top:.25rem"><i class="ti ti-list"></i> Otras opciones</div>
   <div class="grid" id="grid-others"></div>
-
 </div>
-
-<!-- Modal Mis Votos -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Mis votos</h2>
-      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="modal-body" id="modal-body">
-    </div>
-  </div>
-</div>
-
 <script>
-// =====================================================================
-// DATOS — reemplazado automáticamente por el scraper
-// =====================================================================
-const SITE_DATA = {
-  week: "FECHA",
-  zones: "Florida · Munro · Villa Martelli",
-  budget: "U$D 150.000",
-  stats: { total: 0, range: "–", patio: "–" },
-  props: []
-};
-// =====================================================================
+const PROPS = [
+  {
+    "id": "zp-771e27f01b",
+    "title": "USD 175.000",
+    "addr": "Domingo French al 400Villa Martelli, Vicente López · Villa Martelli",
+    "price": "USD 175.000",
+    "zona": "Villa Martelli",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Casa de 3 dormitorios sobre lote de 10 x 30 m – Apto Crédito y Uso ComercialMuy buena propiedad desarrollada sobre lote de 300 m² (10 x 30 m), ubicada en una zona de fácil acceso, cercana a centro comercial, comercios y múltiples líneas de transporte público. Al ingresar, cuenta con un amplio jardín al frente con acceso peatonal y entrada para vehículo. La vivienda ofrece un cómodo living con buena iluminación natural, cocina espaciosa integrada al comedor diario y salida directa al patio trasero. Dispone de tres dormitorios, destacándose el principal al frente con placard. Baño completo con bañera y distribución funcional con doble circulación, brindando mayor comodidad e independencia entre los ambientes. En el sector posterior se encuentra un amplio patio, taller, quincho con parrilla y generosos espacios de guardado, ideales para actividades recreativas, emprendimientos o uso profesional. La propiedad cuenta además con terraza transitable y potencial constructivo para futuras ampliaciones. Características destacadas: Lote de 10 x 30 m (300 m²). 3 dormitorios. Entrada para vehículo. Jardín al frente. Patio trasero. Taller y quincho con parrilla. Amplios espacios de guardado. Terraza transitable y construible. Apto Crédito. Uso Comercial. Una propiedad con excelente potencial tanto para vivienda familiar como para desarrollo de actividades comerciales o profesionales. consulte el precio de su propiedad! Tasaciones en 48hs*Todas las operaciones inmobiliarias son concluidas por los martilleros y corredores colegiados, cuyos datos se exhiben debajo del nombre de la Empresa. Corredores públicos Y martilleros responsables: mario lópez moyano cmcpsi 3869. Mariela lópez dulce cucicba 8109. *aviso legal: Las descripciones arquitectónicas y funcionales, valores de expensas, impuestos y servicios, fotos y medidas de este inmueble son aproximados. Los datos fueron proporcionados por el propietario y pueden no estar actualizados a la hora de la visualización de este aviso por lo cual pueden arrojar inexactitudes y discordancias con las que surgen de los las facturas, títulos y planos legales del inmueble. Los precios indicados podrán modificarse sin previo aviso. La fechas de inicio de obra o posesión son estimadas, podrán ser reprogramadas por la Dirección de obra y dependerán a su vez de un proceso de aprobaciones municipales u otros organismos intervinientes. El interesado deberá realizar las verificaciones respectivas previamente a la realización de cualquier operación, requiriendo por sí o sus profesionales las copias necesarias de la documentación que corresponda. Venta supeditada al cumplimiento por parte del propietario de los requisitos de la resolución general Nº 2371 de la afip. La publicación de este inmueble es a título informativo, la venta de la propiedad está supeditada a que el propietario cumplimente el trámite ante la afip. Asimismo en cumplimiento con la Ley 10. 973 de la Prov. Bs. As. , Ley 22. 802 de Lealtad Comercial, Ley 24. 240 de Defensa al Consumidor, las normas del Código Civil y Comercial de la Nación y Constitucionales, los agentes y/o vendedores no ejercen el corretaje inmobiliario.",
+    "photo_urls": [
+      "https://imgar.zonapropcdn.com/avisos/1/00/59/46/69/61/360x266/2061920784.jpg?isFirstImage=true"
+    ],
+    "photos": [
+      "photos/pzp-771e27f01b_1.jpg"
+    ],
+    "featured": true,
+    "links": [
+      {
+        "l": "Zonaprop",
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-villa-martelli-3-dorm.-jardin-apto-59466961.html?n_src=Listado&n_pills=Quincho&n_pg=1&n_pos=1"
+      }
+    ]
+  },
+  {
+    "id": "zp-e5bf8af88b",
+    "title": "300 m² tot.4 amb.3 dorm.1 baño2 coch.",
+    "addr": "Villa Martelli · Villa Martelli",
+    "price": "Consultar",
+    "zona": "Villa Martelli",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [],
+    "photos": [],
+    "featured": true,
+    "links": []
+  },
+  {
+    "id": "zp-e18dd3916b",
+    "title": "USD 380.000",
+    "addr": "Libertad 2300Florida, Vicente López · Florida",
+    "price": "USD 380.000",
+    "zona": "Florida",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Excelente propiedad con un enorme potencial, ideal para reciclar o modernizar. Ubicada en la inmejorable tranquilidad de una cortada (Libertad al 2300), en el corazón del entorno más residencial y seguro de Florida. La propiedad se destaca por su excelente implantación en el lote, contando con retiro de frente (jardín delantero) y un fondo libre con orientación Noroeste, garantizando luz y sol directo durante toda la tarde en el área de la pileta. Además, su distribución permite disfrutar del sol de la mañana (Este) en la planta alta y en los laterales. Distribución de la Planta Baja: Ingreso y Recepción: jardín al frente que da paso a un cómodo living-comedor. Dormitorios (3 en esta planta): Pasillo distribuidor principal que conecta con dos dormitorios (uno con vista al frente y el segundo en el centro de la planta) y lucarna. El tercer dormitorio se encuentra en el sector contrafrente, con vista al jardín. Baños: Baño principal completo en el pasillo distribuidor y un segundo toilette/baño pequeño en el sector de servicio. Cocina y Comedor Diario: Cocina independiente orientada hacia el lateral de la casa, destacándose por su excelente luminosidad matinal. Conecta con un pasillo secundario que funciona como área de lavadero (espacio para heladera y lavarropas), desembocando en un comedor diario. Planta Alta: Suite Principal / 4to Dormitorio: Un espacio separado de la casa, que cuenta con baño en suite. Sus ventanas orientadas al Este (hacia el mismo lateral que la cocina) aseguran una excelente luz natural con el sol de la mañana. Altillos: Acceso directo desde este nivel a espacios de altillo, ideales para sumar gran capacidad de guardado. Al salir hacia el contrafrente desde la planta baja, encontramos un patio/piso ideal para armar un sector de mesa y sillas al aire libre. Gran jardín parquizado con pileta (cuenta con un deck de madera a actualizar). Quincho y Dependencias: Cómodo quincho en el fondo del lote, que incluye un cuarto de servicio con baño propio y un cuarto adicional de guardado/herramientas. A destacar: La casa requiere trabajos de actualización y mantenimiento general, pero ofrece una estructura clásica, ambientes amplios y una distribución versátil que permite infinitas posibilidades de refuncionalización. ¡Una oportunidad inmejorable para vivir en la cuadra más linda y tranquila de Florida! En cumplimiento de las normas legales aplicables, los agentes no ejercen el corretaje inmobiliario. Todas las operaciones inmobiliarias son objeto de intermediación y conclusión por parte del Corredor Público Inmobiliario matriculado de la oficina. Vl Realtor srl. Corredor Diego E. Mastrangelo. mat. Cmcpsi N° 6609 - mat. Cucicb. A N°7615. General Justo José de Urquiza 405, Vicente López, Buenos Aires. En cumplimiento de las leyes vigentes que regulan el corretaje inmobiliario, Ley Nacional 25. 028, Ley 2. 340, Ley 10. 973, Ley 24. 240 de Defensa al Consumidor, las normas del Código Civil y Comercial de la Nación y Constitucionales, los agentes/gestores no ejercen el corretaje inmobiliario. Todas las operaciones inmobiliarias son objeto de intermediación y conclusión por parte del corredor público inmobiliario colegiado a cargo de la publicación, cuyos datos se exhiben en la presente. Corredor Responsable: Diego Mastrangelo cucicba 7615 csi 6609- Contacto: Luciana Cruz Font. - kpVer datos - kptVer datos- - Publicado usando KiteProp crm Inmobiliario",
+    "photo_urls": [
+      "https://imgar.zonapropcdn.com/avisos/1/00/59/26/88/68/360x266/2063772369.jpg?isFirstImage=true"
+    ],
+    "photos": [
+      "photos/pzp-e18dd3916b_1.jpg"
+    ],
+    "featured": true,
+    "links": [
+      {
+        "l": "Zonaprop",
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-6-amb-florida-mitre-inmejorable-ubicacion-59268868.html?n_src=Listado&n_pills=Luminoso&n_pg=1&n_pos=1"
+      }
+    ]
+  },
+  {
+    "id": "zp-6110163f39",
+    "title": "396 m² tot.6 amb.4 dorm.2 baños2 coch.",
+    "addr": "Florida · Florida",
+    "price": "Consultar",
+    "zona": "Florida",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [],
+    "photos": [],
+    "featured": false,
+    "links": []
+  },
+  {
+    "id": "zp-b5b9955621",
+    "title": "USD 280.000",
+    "addr": "Echeverria 2038. Entre Malaver y Buenos AiresMunro, Vicente López · Munro",
+    "price": "USD 280.000",
+    "zona": "Munro",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Venta de casa de 5 ambientes en Munro, Vicente López. --venta con renta hasta noviembre de 2026-- Muy buena propiedad en Munro, actualmente oficina, cuenta en planta baja con toilette de recepción, Living comedor subdividido con ventana vidriada, cocina comedor con baño con ducha. Jardín con cuarto guarda herramientas. Garage para 1 auto. En la segunda planta cuenta con balcón cubierto que puede funcionar de deposito. 4 dormitorios y un baño completo. 2 dormitorios tienen salida a balcón al frente. La propiedad cuenta con gas en la planta baja y arriba se administra con un termotanque eléctrico dentro del baño. Posee 180 metros y esta ubicado en una zona con grandes accesos; Enfrente de la subida a Malaver y panamericana donde pasan numerosas líneas de colectivo y a mts del acceso para ir a General Paz. --zonificacion R3-- No se lo pierda y visítelo!! xintel(pas-pas-3348)",
+    "photo_urls": [
+      "https://imgar.zonapropcdn.com/avisos/1/00/55/10/61/55/360x266/1957242771.jpg?isFirstImage=true"
+    ],
+    "photos": [
+      "photos/pzp-b5b9955621_1.jpg"
+    ],
+    "featured": false,
+    "links": [
+      {
+        "l": "Zonaprop",
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-de-casa-5-amb-en-munro-55106155.html?n_src=Listado&n_pills=Apto+cr%C3%A9dito&n_pg=1&n_pos=1"
+      }
+    ]
+  },
+  {
+    "id": "zp-9db9c6d628",
+    "title": "185 m² tot.5 amb.4 dorm.3 baños1 coch.",
+    "addr": "Munro · Munro",
+    "price": "Consultar",
+    "zona": "Munro",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [],
+    "photos": [],
+    "featured": false,
+    "links": []
+  },
+  {
+    "id": "zp-1631000150",
+    "title": "USD 580.000",
+    "addr": "Lisandro de la Torre al 500Vicente López, Vicente López · Vicente Lopez",
+    "price": "USD 580.000",
+    "zona": "Vicente Lopez",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ingreso en el bajo de vicente lopezhermoso jardín en el pulmón de manzanaorientación este/oestemedidas del lote: 8. 66M x 47. 63msuperficie cubierta: 272M²superficie del lote: 412M²Vivienda desarrollada en 2 plantas, rodeada de un hermoso pulmón de manzana y ubicada sobre uno de los lotes más profundos de la cuadra. • Planta baja: Tras el ingreso principal a la casa, se encuentra el hall de recepción que cuenta con espacio de guardado de abrigos y calzado. Conectando de manera abierta hacia la derecha, se descubre un gran espacio social en planta baja, donde se destacan las amplias dimensiones, alturas y detalles de los ambientes. El living principal, luego un comedor principal independiente, que se conecta al jardín de invierno. Este cálido ambiente con ventanales sobre el jardín tienen un hogar a leña que funciona perfectamente y acompaña el segundo estar comedor diario. Tanto en el hall de ingreso como el living y el comedor principal se destacan los pisos de madera natural de viraró tarugado que se encuentran en un estado impecable. Ubicado estratégicamente y en un lateral de la escalera principal de madera, se encuentra el toilette de recepción que se destaca por su calidez y belleza con detalles de época. La propiedad tiene un acceso independiente para el área de servicio en planta baja a través del garaje cubierto ingresando a la cocina. Dicha cocina es de distribución lineal y se destaca por su amplio gran espacio de guardado, y un práctico el comedor diario. Cuenta con doble circulación vertical desde el sector de servicio a la planta alta. La cochera cubierta que cuenta con apertura automática tanto del portón como de la reja exterior. El área de servicio tiene también un lavadero y cuarto de servicio con baño privado. • Planta Alta: Hall distribuidor con acceso a los ambientes en planta alta. Dos dormitorios de amplias dimensiones y placards empotrados al frente, con vistas a la calle Lisandro de la Torre, y sol de tarde, uno de ellos con acceso a una terraza privada. El baño completo que comparten estos cuartos cuenta con bañera y también asiste a otro de los dormitorios al contrafrente con pequeña terraza en esta planta, que actualmente oficia de escritorio-estudio. Por ultimo tenemos el acceso a la master suite, con dimensiones realmente grandes, ideal para poder actualizar a gusto del propietario, agregando un vestidor semi integrado. Actualmente posee amplios placards de piso a techo. Tiene un baño en suite, donde abunda el espacio de guardado y las comodidades, como por ejemplo la bañera semi enterrada de fácil acceso. • Exterior: El área al aire libre de esta vivienda es realmente hermosa con su jardín con vistas horizontes verdes de árboles frondosos y pinos embellecen la vista y hacen de este espacio un paisaje único. Pileta azulejada y equipada completamente. Sobre el fondo del lote se ubica el quincho cubierto. Este jardín es realmente único. Al encontrarse en el centro de la cuadra, esta propiedad tiene uno de los lotes más profundos y se puede ver reflejado en el jardín de manera directa. Posee riego por aspersión. • La casa cuenta con cochera cubierta para un vehículo con portón automático, y espacio de guardado descubierto exterior para un segundo vehículo. ¡esperamos su consulta! **Las medidas y superficies expuestas surgen de la información suministrada por el propietario, la empresa no se responsabiliza por la exactitud de las mismas**cucicba 5156cmcpsi 4500bellagambamarketing Inmobiliario",
+    "photo_urls": [
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/24/66/89/360x266/2029600104.jpg?isFirstImage=true"
+    ],
+    "photos": [
+      "photos/pzp-1631000150_1.jpg"
+    ],
+    "featured": false,
+    "links": [
+      {
+        "l": "Zonaprop",
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-casa-venta-bajo-vicente-lopez-3-dorm.-cochera-gran-58246689.html?n_src=Listado&n_pills=Dormitorio+en+suite&n_pg=1&n_pos=1"
+      }
+    ]
+  },
+  {
+    "id": "zp-3434d6bf19",
+    "title": "412 m² tot.6 amb.4 dorm.3 baños1 coch.",
+    "addr": "Vicente Lopez · Vicente Lopez",
+    "price": "Consultar",
+    "zona": "Vicente Lopez",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [],
+    "photos": [],
+    "featured": false,
+    "links": []
+  }
+];
+const votes={}, cs={};
 
-document.getElementById('subtitle').textContent =
-  `Semana del ${SITE_DATA.week} · ${SITE_DATA.zones} · hasta ${SITE_DATA.budget}`;
-document.getElementById('m-total').textContent = SITE_DATA.stats.total;
-document.getElementById('m-range').textContent = SITE_DATA.stats.range;
-document.getElementById('m-patio').textContent = SITE_DATA.stats.patio;
-
-const STORAGE_KEY = 'casas-cata-votos';
-const cs = {};
-
-// Load votes from localStorage
-function loadVotes() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-  catch { return {}; }
+function spawnFloater(emoji,btnEl,anim){
+  const rect=btnEl.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='floater';el.textContent=emoji;
+  el.style.left=(rect.left+rect.width/2-14)+'px';
+  el.style.top=(rect.top-10)+'px';
+  el.style.animation=`${anim} 0.7s ease-out forwards`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),750);
 }
-function saveVotes(v) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch {}
+function animateCard(id,animName){
+  const wrap=document.querySelector(`#card-wrap-${id}`);
+  if(wrap)wrap.style.animation=`${animName} 0.35s ease-out forwards`;
 }
-let votes = loadVotes();
-
-// Floater
-function spawnFloater(emoji, btnEl, anim) {
-  const rect = btnEl.getBoundingClientRect();
-  const el = document.createElement('div');
-  el.className = 'floater'; el.textContent = emoji;
-  el.style.left = (rect.left + rect.width/2 - 14) + 'px';
-  el.style.top  = (rect.top - 10) + 'px';
-  el.style.animation = `${anim} 0.7s ease-out forwards`;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 750);
-}
-
-function animateCard(id, animName) {
-  const wrap = document.querySelector(`#card-wrap-${id}`);
-  if (wrap) wrap.style.animation = `${animName} 0.35s ease-out forwards`;
-}
-
-// Carousel
-function carouselHTML(p) {
-  const ph = p.photos || [];
-  const firstLink = (p.links && p.links[0]) ? p.links[0].u : '#';
-  if (!ph.length) return `<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
-  const imgs = ph.map((s, i) => `<img src="${s}" alt="Foto ${i+1}" class="${i===0?'active':''}" loading="lazy">`).join('');
-  const dots = ph.length > 1 ? ph.map((_, i) => `<span class="dot${i===0?' active':''}" onclick="event.stopPropagation();goTo('${p.id}',${i})"></span>`).join('') : '';
-  const feat = p.featured ? `<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>` : '';
-  const count = ph.length > 1 ? `<div class="photo-count" id="pc-${p.id}">1 / ${ph.length}</div>` : '';
-  const nav = ph.length > 1 ? `
-    <div class="carousel-nav">
-      <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${p.id}',-1)" aria-label="Anterior"><i class="ti ti-chevron-left"></i></button>
-      <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${p.id}',1)" aria-label="Siguiente"><i class="ti ti-chevron-right"></i></button>
-    </div>
-    <div class="dots">${dots}</div>` : '';
-  return `<div class="carousel" data-id="${p.id}">
-    <a class="overlay-link" href="${firstLink}" target="_blank" aria-label="Ver publicación"></a>
+function carouselHTML(p){
+  const ph=p.photos||[];
+  const firstLink=(p.links&&p.links[0])?p.links[0].u:'#';
+  if(!ph.length)return`<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
+  const imgs=ph.map((s,i)=>`<img src="${s}" alt="Foto ${i+1}" class="${i===0?'active':''}" loading="lazy">`).join('');
+  const dots=ph.length>1?ph.map((_,i)=>`<span class="dot${i===0?' active':''}" onclick="event.stopPropagation();goTo('${p.id}',${i})"></span>`).join(''):'';
+  const feat=p.featured?`<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>`:'';
+  const count=ph.length>1?`<div class="photo-count" id="pc-${p.id}">1 / ${ph.length}</div>`:'';
+  const nav=ph.length>1?`<div class="carousel-nav">
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${p.id}',-1)"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${p.id}',1)"><i class="ti ti-chevron-right"></i></button>
+  </div><div class="dots">${dots}</div>`:'';
+  return`<div class="carousel" data-id="${p.id}">
+    <a class="overlay-link" href="${firstLink}" target="_blank"></a>
     ${imgs}${feat}${count}
     <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
     ${nav}
   </div>`;
 }
-
-// Card HTML
-function cardHTML(p) {
-  const links = (p.links||[]).map(l =>
-    `<a class="plink" href="${l.u}" target="_blank">${l.l} <i class="ti ti-external-link" style="font-size:11px"></i></a>`
-  ).join('');
-  const v = votes[p.id] || '';
-  const descId = `desc-${p.id}`;
-  return `<div id="card-wrap-${p.id}" class="card-wrap">
+function cardHTML(p){
+  const links=(p.links||[]).map(l=>`<a class="plink" href="${l.u}" target="_blank">${l.l} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
+  const v=votes[p.id]||'';
+  return`<div id="card-wrap-${p.id}" class="card-wrap">
     <div class="card${p.featured?' featured':''}" id="card-${p.id}">
       ${carouselHTML(p)}
       <div class="portal-links">${links}</div>
@@ -284,13 +308,8 @@ function cardHTML(p) {
           <span class="tag tag-estado">${p.estado}</span>
           <span class="tag tag-tipo">${p.tipo}</span>
         </div>
-        <div>
-          <div class="desc-label">Descripción del portal</div>
-          <div class="desc-block">
-            <div class="desc-text" id="${descId}">${p.desc}</div>
-            <button class="ver-mas" id="vm-${p.id}" onclick="toggleDesc('${p.id}')">Ver más</button>
-          </div>
-        </div>
+        <div><div class="desc-label">Descripción del portal</div>
+        <div class="desc-block">${p.desc}</div></div>
       </div>
       <div class="price-row"><span class="price">${p.price}</span></div>
       <div class="vote-bar">
@@ -302,132 +321,51 @@ function cardHTML(p) {
     </div>
   </div>`;
 }
-
-// Toggle description
-function toggleDesc(id) {
-  const el = document.getElementById(`desc-${id}`);
-  const btn = document.getElementById(`vm-${id}`);
-  if (!el || !btn) return;
-  const expanded = el.classList.toggle('expanded');
-  btn.textContent = expanded ? 'Ver menos' : 'Ver más';
+function goSlide(id,dir){
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${id}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cur=(cur+dir+ph.length)%ph.length;cs[id]=cur;
+  imgs[cur].classList.add('active');if(dots[cur])dots[cur].classList.add('active');
+  const pc=document.getElementById(`pc-${id}`);if(pc)pc.textContent=`${cur+1} / ${ph.length}`;
 }
-
-// Carousel controls
-function goSlide(id, dir) {
-  const p = SITE_DATA.props.find(x => x.id === id);
-  const ph = p ? p.photos : [];
-  if (!ph.length) return;
-  const imgs = document.querySelectorAll(`.carousel[data-id="${id}"] img`);
-  const dots = document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
-  let cur = cs[id] || 0;
-  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
-  cur = (cur + dir + ph.length) % ph.length; cs[id] = cur;
-  imgs[cur].classList.add('active'); if(dots[cur]) dots[cur].classList.add('active');
-  const pc = document.getElementById(`pc-${id}`);
-  if (pc) pc.textContent = `${cur+1} / ${ph.length}`;
+function goTo(id,idx){
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${id}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cs[id]=idx;imgs[idx].classList.add('active');if(dots[idx])dots[idx].classList.add('active');
+  const pc=document.getElementById(`pc-${id}`);if(pc)pc.textContent=`${idx+1} / ${ph.length}`;
 }
-
-function goTo(id, idx) {
-  const p = SITE_DATA.props.find(x => x.id === id);
-  const ph = p ? p.photos : [];
-  if (!ph.length) return;
-  const imgs = document.querySelectorAll(`.carousel[data-id="${id}"] img`);
-  const dots = document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
-  let cur = cs[id] || 0;
-  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
-  cs[id] = idx; imgs[idx].classList.add('active'); if(dots[idx]) dots[idx].classList.add('active');
-  const pc = document.getElementById(`pc-${id}`);
-  if (pc) pc.textContent = `${idx+1} / ${ph.length}`;
+function setVote(id,val,btnEl){
+  const prev=votes[id];
+  if(prev===val){delete votes[id];render();return;}
+  votes[id]=val;
+  if(val==='love')spawnFloater('❤️',btnEl,'float-up');
+  else if(val==='meh')spawnFloater('🤔',btnEl,'float-upright');
+  else spawnFloater('✕',btnEl,'float-right');
+  if(!prev){animateCard(id,val==='no'?'slide-right':'slide-up');setTimeout(()=>render(),360);}
+  else render();
 }
-
-// Voting
-function setVote(id, val, btnEl) {
-  const prev = votes[id];
-  if (prev === val) { delete votes[id]; saveVotes(votes); render(); return; }
-  votes[id] = val;
-  saveVotes(votes);
-  if (val === 'love') spawnFloater('❤️', btnEl, 'float-up');
-  else if (val === 'meh') spawnFloater('🤔', btnEl, 'float-upright');
-  else spawnFloater('✕', btnEl, 'float-right');
-  if (!prev) {
-    animateCard(id, val === 'no' ? 'slide-right' : 'slide-up');
-    setTimeout(() => render(), 360);
-  } else { render(); }
+function render(){
+  const loved=PROPS.filter(p=>votes[p.id]==='love');
+  const meh=PROPS.filter(p=>votes[p.id]==='meh');
+  const hidden=new Set(PROPS.filter(p=>votes[p.id]==='no').map(p=>p.id));
+  document.getElementById('count-love').textContent=loved.length||'–';
+  document.getElementById('count-meh').textContent=meh.length||'–';
+  const sl=document.getElementById('sec-love');const sm=document.getElementById('sec-meh');
+  sl.style.display=loved.length?'block':'none';
+  sm.style.display=meh.length?'block':'none';
+  if(loved.length)document.getElementById('grid-love').innerHTML=loved.map(cardHTML).join('');
+  if(meh.length)document.getElementById('grid-meh').innerHTML=meh.map(cardHTML).join('');
+  const feat=PROPS.filter(p=>p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  const others=PROPS.filter(p=>!p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  document.getElementById('grid-featured').innerHTML=feat.length?feat.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+  document.getElementById('grid-others').innerHTML=others.length?others.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
 }
-
-// Render main page
-function render() {
-  const props = SITE_DATA.props;
-  const loved  = props.filter(p => votes[p.id] === 'love');
-  const meh    = props.filter(p => votes[p.id] === 'meh');
-  const hidden = new Set(props.filter(p => votes[p.id] === 'no').map(p => p.id));
-
-  document.getElementById('count-love').textContent = loved.length || '–';
-  document.getElementById('count-meh').textContent  = meh.length  || '–';
-
-  const sl = document.getElementById('sec-love');
-  const sm = document.getElementById('sec-meh');
-  sl.style.display = loved.length ? 'block' : 'none';
-  sm.style.display = meh.length  ? 'block' : 'none';
-  if (loved.length) document.getElementById('grid-love').innerHTML = loved.map(cardHTML).join('');
-  if (meh.length)   document.getElementById('grid-meh').innerHTML  = meh.map(cardHTML).join('');
-
-  const feat   = props.filter(p => p.featured && !votes[p.id] && !hidden.has(p.id));
-  const others = props.filter(p => !p.featured && !votes[p.id] && !hidden.has(p.id));
-  document.getElementById('grid-featured').innerHTML = feat.length
-    ? feat.map(cardHTML).join('')
-    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
-  document.getElementById('grid-others').innerHTML = others.length
-    ? others.map(cardHTML).join('')
-    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
-}
-
-// Modal Mis Votos
-function openModal() {
-  const props = SITE_DATA.props;
-  const loved  = props.filter(p => votes[p.id] === 'love');
-  const meh    = props.filter(p => votes[p.id] === 'meh');
-
-  function itemHTML(p, cls) {
-    const links = (p.links||[]).map(l =>
-      `<a class="modal-link" href="${l.u}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${l.l}</a>`
-    ).join('');
-    return `<div class="modal-item ${cls}">
-      <div class="modal-item-info">
-        <div class="modal-item-title">${p.title}</div>
-        <div class="modal-item-addr">${p.addr}</div>
-        <div class="modal-item-price">${p.price}</div>
-      </div>
-      <div class="modal-item-links">${links}</div>
-    </div>`;
-  }
-
-  let html = '';
-
-  html += `<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
-  html += loved.length
-    ? `<div class="modal-list">${loved.map(p => itemHTML(p,'love-border')).join('')}</div>`
-    : `<p class="modal-empty">Todavía no marcaste ninguna como favorita.</p>`;
-
-  html += `<div class="modal-section-label"><i class="ti ti-clock"></i> Posibles</div>`;
-  html += meh.length
-    ? `<div class="modal-list">${meh.map(p => itemHTML(p,'meh-border')).join('')}</div>`
-    : `<p class="modal-empty">Todavía no marcaste ninguna como posible.</p>`;
-
-  document.getElementById('modal-body').innerHTML = html;
-  document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function closeModalOutside(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-}
-
 render();
 </script>
 </body>
