@@ -4,7 +4,7 @@ Casas para Cata — scraper diario
 Busca en Argenprop y Zonaprop, descarga fotos y regenera index.html
 """
 
-import os, json, time, random, hashlib, re, shutil
+import os, json, time, random, hashlib, re
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
@@ -12,13 +12,12 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 
-# ── Configuración ────────────────────────────────────────────────────────────
-
+# ── Configuración ─────────────────────────────────────────────────────────────
 ZONAS = ["villa-martelli", "florida", "munro", "vicente-lopez"]
-MAX_PROPS = 20          # máximo de propiedades en el sitio
-MAX_PHOTOS = 5          # fotos por propiedad
-PHOTOS_DIR = Path("photos")
-DELAY = (2, 5)          # segundos de espera entre requests (min, max)
+MAX_PROPS   = 20
+MAX_PHOTOS  = 5
+PHOTOS_DIR  = Path("photos")
+DELAY       = (2, 5)
 
 HEADERS = {
     "User-Agent": (
@@ -30,8 +29,7 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
-
+# ── Helpers ───────────────────────────────────────────────────────────────────
 def get(url, retries=3):
     for i in range(retries):
         try:
@@ -46,13 +44,9 @@ def get(url, retries=3):
 
 def slugify(text):
     text = text.lower().strip()
-    text = re.sub(r'[áàä]','a', text)
-    text = re.sub(r'[éèë]','e', text)
-    text = re.sub(r'[íìï]','i', text)
-    text = re.sub(r'[óòö]','o', text)
-    text = re.sub(r'[úùü]','u', text)
-    text = re.sub(r'[ñ]','n', text)
-    text = re.sub(r'[^a-z0-9]+','-', text)
+    for a, b in [('áàä','a'),('éèë','e'),('íìï','i'),('óòö','o'),('úùü','u'),('ñ','n')]:
+        for c in a: text = text.replace(c, b)
+    text = re.sub(r'[^a-z0-9]+', '-', text)
     return text.strip('-')[:50]
 
 def photo_id(url):
@@ -70,69 +64,53 @@ def download_photo(url, prop_id, idx):
         return str(filename)
     return None
 
-# ── Argenprop ────────────────────────────────────────────────────────────────
-
+# ── Argenprop ─────────────────────────────────────────────────────────────────
 def scrape_argenprop():
     props = []
     for zona in ZONAS:
         url = f"https://www.argenprop.com/casas-y-ph/venta/{zona}--precio-dolares-max-150000"
         print(f"\n🔍 Argenprop → {zona}")
         r = get(url)
-        if not r:
-            continue
+        if not r: continue
         soup = BeautifulSoup(r.text, "html.parser")
         listings = soup.select(".listing__item, .card, [class*='listing-card']")
         print(f"   {len(listings)} resultados")
         for item in listings[:10]:
             try:
-                # Título
                 title_el = item.select_one("h2, h3, .card__title, [class*='title']")
                 title = title_el.get_text(strip=True) if title_el else ""
-                if not title:
-                    continue
-                # Dirección
+                if not title: continue
                 addr_el = item.select_one(".card__address, [class*='address'], .card__location")
-                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-", " ").title()
-                # Precio
+                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
                 price_el = item.select_one(".card__price, [class*='price']")
-                price = price_el.get_text(strip=True) if price_el else "Consultar"
-                price = re.sub(r'\s+', ' ', price).strip()
-                # Link
+                price = re.sub(r'\s+', ' ', price_el.get_text(strip=True)).strip() if price_el else "Consultar"
                 link_el = item.select_one("a[href]")
                 link = ""
                 if link_el:
                     href = link_el.get("href","")
                     link = href if href.startswith("http") else f"https://www.argenprop.com{href}"
-                # Descripción
                 desc_el = item.select_one("[class*='desc'], [class*='detail'], p")
                 desc = desc_el.get_text(strip=True) if desc_el else ""
-                # Fotos
                 photos = []
                 for img in item.select("img[src], img[data-src]")[:MAX_PHOTOS]:
                     src = img.get("data-src") or img.get("src","")
-                    if src and "http" in src and not "logo" in src.lower():
+                    if src and "http" in src and "logo" not in src.lower():
                         photos.append(src)
                 prop_id = f"ar-{photo_id(link or title)}"
                 props.append({
-                    "id": prop_id,
-                    "title": title,
+                    "id": prop_id, "title": title,
                     "addr": f"{addr} · {zona.replace('-',' ').title()}",
-                    "price": price,
-                    "zona": zona.replace("-"," ").title(),
-                    "estado": "A confirmar",
-                    "tipo": "Casa / PB",
+                    "price": price, "zona": zona.replace("-"," ").title(),
+                    "estado": "A confirmar", "tipo": "Casa / PB",
                     "desc": desc or "Ver descripción completa en el portal.",
-                    "photo_urls": photos,
-                    "photos": [],
-                    "featured": False,
-                    "links": [{"l": "Argenprop", "u": link}] if link else []
+                    "photo_urls": photos, "photos": [], "featured": False,
+                    "links": [{"l":"Argenprop","u":link}] if link else []
                 })
             except Exception as e:
-                print(f"   ⚠ error parseando item: {e}")
+                print(f"   ⚠ error: {e}")
     return props
 
-# ── Zonaprop ─────────────────────────────────────────────────────────────────
-
+# ── Zonaprop ──────────────────────────────────────────────────────────────────
 def scrape_zonaprop():
     props = []
     ZONA_MAP = {
@@ -141,12 +119,11 @@ def scrape_zonaprop():
         "munro": "munro",
         "vicente-lopez": "vicente-lopez"
     }
-    for zona, zona_slug in ZONA_MAP.items():
-        url = f"https://www.zonaprop.com.ar/casas-venta-{zona_slug}-hasta-150000-dolares.html"
+    for zona, slug in ZONA_MAP.items():
+        url = f"https://www.zonaprop.com.ar/casas-venta-{slug}-hasta-150000-dolares.html"
         print(f"\n🔍 Zonaprop → {zona}")
         r = get(url)
-        if not r:
-            continue
+        if not r: continue
         soup = BeautifulSoup(r.text, "html.parser")
         listings = soup.select("[class*='postingCard'], [class*='posting-card'], article")
         print(f"   {len(listings)} resultados")
@@ -154,13 +131,11 @@ def scrape_zonaprop():
             try:
                 title_el = item.select_one("h2, h3, [class*='title']")
                 title = title_el.get_text(strip=True) if title_el else ""
-                if not title:
-                    continue
+                if not title: continue
                 addr_el = item.select_one("[class*='address'], [class*='location']")
                 addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
                 price_el = item.select_one("[class*='price']")
-                price = price_el.get_text(strip=True) if price_el else "Consultar"
-                price = re.sub(r'\s+', ' ', price).strip()
+                price = re.sub(r'\s+', ' ', price_el.get_text(strip=True)).strip() if price_el else "Consultar"
                 link_el = item.select_one("a[href]")
                 link = ""
                 if link_el:
@@ -171,32 +146,25 @@ def scrape_zonaprop():
                 photos = []
                 for img in item.select("img[src], img[data-src]")[:MAX_PHOTOS]:
                     src = img.get("data-src") or img.get("src","")
-                    if src and "http" in src and not "logo" in src.lower():
+                    if src and "http" in src and "logo" not in src.lower():
                         photos.append(src)
                 prop_id = f"zp-{photo_id(link or title)}"
                 props.append({
-                    "id": prop_id,
-                    "title": title,
+                    "id": prop_id, "title": title,
                     "addr": f"{addr} · {zona.replace('-',' ').title()}",
-                    "price": price,
-                    "zona": zona.replace("-"," ").title(),
-                    "estado": "A confirmar",
-                    "tipo": "Casa / PB",
+                    "price": price, "zona": zona.replace("-"," ").title(),
+                    "estado": "A confirmar", "tipo": "Casa / PB",
                     "desc": desc or "Ver descripción completa en el portal.",
-                    "photo_urls": photos,
-                    "photos": [],
-                    "featured": False,
-                    "links": [{"l": "Zonaprop", "u": link}] if link else []
+                    "photo_urls": photos, "photos": [], "featured": False,
+                    "links": [{"l":"Zonaprop","u":link}] if link else []
                 })
             except Exception as e:
-                print(f"   ⚠ error parseando item: {e}")
+                print(f"   ⚠ error: {e}")
     return props
 
-# ── Deduplicar ───────────────────────────────────────────────────────────────
-
+# ── Dedup & fotos ─────────────────────────────────────────────────────────────
 def dedup(props):
-    seen = set()
-    result = []
+    seen, result = set(), []
     for p in props:
         key = slugify(p["title"])[:40]
         if key not in seen:
@@ -204,21 +172,17 @@ def dedup(props):
             result.append(p)
     return result
 
-# ── Descargar fotos ───────────────────────────────────────────────────────────
-
 def download_all_photos(props):
     PHOTOS_DIR.mkdir(exist_ok=True)
     for p in props:
         downloaded = []
         for i, url in enumerate(p.get("photo_urls", [])[:MAX_PHOTOS], 1):
             path = download_photo(url, p["id"], i)
-            if path:
-                downloaded.append(path)
+            if path: downloaded.append(path)
         p["photos"] = downloaded
     return props
 
 # ── Generar HTML ──────────────────────────────────────────────────────────────
-
 def gen_html(props, week_str):
     total = len(props)
     prices = []
@@ -228,13 +192,10 @@ def gen_html(props, week_str):
             try: prices.append(int(m.group().replace(".","")[:6]))
             except: pass
     price_range = f"U$D {min(prices)//1000}k – {max(prices)//1000}k" if prices else "–"
-    patio = sum(1 for p in props if "patio" in p["desc"].lower() or "patio" in p["title"].lower())
+    patio = sum(1 for p in props if "patio" in (p["desc"]+p["title"]).lower())
     patio_str = f"{patio} / {total}"
-
-    # Mark first 3 as featured
     for i, p in enumerate(props):
         p["featured"] = i < 3
-
     props_js = json.dumps(props, ensure_ascii=False, indent=2)
 
     return f"""<!DOCTYPE html>
@@ -257,9 +218,11 @@ def gen_html(props, week_str):
     }}
     body {{ background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;min-height:100vh; }}
     .page {{ max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem; }}
-    .site-header {{ margin-bottom:2rem; }}
+    .site-header {{ margin-bottom:2rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem; }}
     .site-header h1 {{ font-size:26px;font-weight:600;letter-spacing:-0.02em; }}
     .site-header p {{ font-size:13px;color:var(--text3);margin-top:4px; }}
+    .mis-votos-btn {{ display:flex;align-items:center;gap:6px;background:var(--text);color:#fff;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--radius-md);border:none;cursor:pointer;white-space:nowrap; }}
+    .mis-votos-btn:hover {{ background:#333; }}
     .metrics {{ display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:2.5rem; }}
     .metric {{ background:var(--bg2);border-radius:var(--radius-md);padding:.85rem 1rem; }}
     .metric-label {{ font-size:11px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em; }}
@@ -271,13 +234,14 @@ def gen_html(props, week_str):
     .card-wrap {{ border-radius:var(--radius-lg);overflow:hidden; }}
     .card {{ background:#fff;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column; }}
     .card.featured {{ border:2px solid var(--green); }}
-    .carousel {{ position:relative;width:100%;aspect-ratio:16/10;background:var(--bg2);overflow:hidden;cursor:pointer; }}
+    .carousel {{ position:relative;width:100%;aspect-ratio:16/10;background:var(--bg2);overflow:hidden; }}
     .carousel a.overlay-link {{ position:absolute;inset:0;z-index:5;display:block; }}
     .carousel img {{ position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s; }}
     .carousel img.active {{ opacity:1; }}
     .carousel-placeholder {{ position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3); }}
+    .carousel-placeholder i {{ font-size:36px; }}
     .carousel-nav {{ position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;pointer-events:none;z-index:10; }}
-    .nav-btn {{ width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px; }}
+    .nav-btn {{ width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;transition:background .15s; }}
     .nav-btn:hover {{ background:rgba(0,0,0,0.7); }}
     .dots {{ position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:10;pointer-events:none; }}
     .dot {{ width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);pointer-events:all;cursor:pointer;transition:background .2s; }}
@@ -298,6 +262,9 @@ def gen_html(props, week_str):
     .tag-tipo {{ background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border); }}
     .desc-label {{ font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px; }}
     .desc-block {{ background:var(--bg2);border-radius:var(--radius-sm);padding:.6rem .85rem;font-size:12px;color:var(--text2);line-height:1.65;border-left:2px solid var(--border); }}
+    .desc-text {{ display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden; }}
+    .desc-text.expanded {{ display:block;overflow:visible; }}
+    .ver-mas {{ font-size:11px;color:var(--green-text);cursor:pointer;margin-top:4px;display:inline-block;font-weight:500;background:none;border:none;padding:0; }}
     .price-row {{ display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--border);padding:.75rem 1.25rem; }}
     .price {{ font-size:15px;font-weight:600;color:var(--text); }}
     .vote-bar {{ border-top:0.5px solid var(--border);padding:.6rem 1.25rem;display:flex;align-items:center;gap:7px;flex-wrap:wrap; }}
@@ -316,14 +283,40 @@ def gen_html(props, week_str):
     @keyframes float-upright {{ 0%{{opacity:1;transform:translate(0,0) scale(1)}} 100%{{opacity:0;transform:translate(60px,-90px) scale(1.2)}} }}
     @keyframes slide-up {{ 0%{{opacity:1;transform:translateY(0)}} 100%{{opacity:0;transform:translateY(-30px)}} }}
     @keyframes slide-right {{ 0%{{opacity:1;transform:translateX(0)}} 100%{{opacity:0;transform:translateX(60px)}} }}
-    @media(prefers-reduced-motion:reduce){{.floater,.card-wrap{{animation:none!important;}}}}
+    @media(prefers-reduced-motion:reduce){{ .floater,.card-wrap{{animation:none!important;}} }}
+    .modal-overlay {{ display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;overflow-y:auto;padding:2rem 1rem; }}
+    .modal-overlay.open {{ display:block; }}
+    .modal {{ background:var(--bg);border-radius:var(--radius-lg);max-width:800px;margin:0 auto;overflow:hidden; }}
+    .modal-header {{ display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10; }}
+    .modal-header h2 {{ font-size:18px;font-weight:600; }}
+    .modal-close {{ background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;display:flex;align-items:center; }}
+    .modal-close:hover {{ color:var(--text); }}
+    .modal-body {{ padding:1.5rem; }}
+    .modal-section-label {{ font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:6px; }}
+    .modal-list {{ display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem; }}
+    .modal-item {{ background:#fff;border:0.5px solid var(--border);border-radius:var(--radius-md);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem; }}
+    .modal-item.love-border {{ border-left:3px solid var(--green); }}
+    .modal-item.meh-border {{ border-left:3px solid var(--amber); }}
+    .modal-item-info {{ flex:1;min-width:0; }}
+    .modal-item-title {{ font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.3; }}
+    .modal-item-addr {{ font-size:12px;color:var(--text3); }}
+    .modal-item-price {{ font-size:13px;font-weight:600;color:var(--text);margin-top:4px; }}
+    .modal-item-links {{ display:flex;flex-direction:column;gap:5px;flex-shrink:0; }}
+    .modal-link {{ font-size:12px;color:#2563eb;text-decoration:none;border:0.5px solid #93c5fd;border-radius:var(--radius-sm);padding:4px 10px;display:flex;align-items:center;gap:4px;white-space:nowrap; }}
+    .modal-link:hover {{ background:#eff6ff; }}
+    .modal-empty {{ font-size:13px;color:var(--text3);margin-bottom:2rem; }}
   </style>
 </head>
 <body>
 <div class="page">
   <header class="site-header">
-    <h1>Casas para Cata</h1>
-    <p>{week_str} · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
+    <div>
+      <h1>Casas para Cata</h1>
+      <p>Actualizado el {week_str} · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
+    </div>
+    <button class="mis-votos-btn" onclick="openModal()">
+      <i class="ti ti-heart"></i> Mis votos
+    </button>
   </header>
   <div class="metrics">
     <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val">{total}</div></div>
@@ -347,46 +340,61 @@ def gen_html(props, week_str):
   <div class="section-label" style="margin-top:.25rem"><i class="ti ti-list"></i> Otras opciones</div>
   <div class="grid" id="grid-others"></div>
 </div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Mis votos</h2>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
 <script>
 const PROPS = {props_js};
-const votes={{}}, cs={{}};
+const STORAGE_KEY = 'casas-cata-votos';
+const cs = {{}};
+function loadVotes() {{ try {{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {{}}; }} catch {{ return {{}}; }} }}
+function saveVotes(v) {{ try {{ localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); }} catch {{}} }}
+let votes = loadVotes();
 
-function spawnFloater(emoji,btnEl,anim){{
-  const rect=btnEl.getBoundingClientRect();
-  const el=document.createElement('div');
-  el.className='floater';el.textContent=emoji;
-  el.style.left=(rect.left+rect.width/2-14)+'px';
-  el.style.top=(rect.top-10)+'px';
-  el.style.animation=`${{anim}} 0.7s ease-out forwards`;
-  document.body.appendChild(el);setTimeout(()=>el.remove(),750);
+function spawnFloater(emoji, btnEl, anim) {{
+  const rect = btnEl.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'floater'; el.textContent = emoji;
+  el.style.left = (rect.left + rect.width/2 - 14) + 'px';
+  el.style.top = (rect.top - 10) + 'px';
+  el.style.animation = `${{anim}} 0.7s ease-out forwards`;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 750);
 }}
-function animateCard(id,animName){{
-  const wrap=document.querySelector(`#card-wrap-${{id}}`);
-  if(wrap)wrap.style.animation=`${{animName}} 0.35s ease-out forwards`;
+function animateCard(id, animName) {{
+  const wrap = document.querySelector(`#card-wrap-${{id}}`);
+  if (wrap) wrap.style.animation = `${{animName}} 0.35s ease-out forwards`;
 }}
-function carouselHTML(p){{
-  const ph=p.photos||[];
-  const firstLink=(p.links&&p.links[0])?p.links[0].u:'#';
-  if(!ph.length)return`<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
-  const imgs=ph.map((s,i)=>`<img src="${{s}}" alt="Foto ${{i+1}}" class="${{i===0?'active':''}}" loading="lazy">`).join('');
-  const dots=ph.length>1?ph.map((_,i)=>`<span class="dot${{i===0?' active':''}}" onclick="event.stopPropagation();goTo('${{p.id}}',${{i}})"></span>`).join(''):'';
-  const feat=p.featured?`<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>`:'';
-  const count=ph.length>1?`<div class="photo-count" id="pc-${{p.id}}">1 / ${{ph.length}}</div>`:'';
-  const nav=ph.length>1?`<div class="carousel-nav">
+function carouselHTML(p) {{
+  const ph = p.photos || [];
+  const firstLink = (p.links && p.links[0]) ? p.links[0].u : '#';
+  if (!ph.length) return `<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
+  const imgs = ph.map((s,i) => `<img src="${{s}}" alt="Foto ${{i+1}}" class="${{i===0?'active':''}}" loading="lazy">`).join('');
+  const dots = ph.length > 1 ? ph.map((_,i) => `<span class="dot${{i===0?' active':''}}" onclick="event.stopPropagation();goTo('${{p.id}}',${{i}})"></span>`).join('') : '';
+  const feat = p.featured ? `<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>` : '';
+  const count = ph.length > 1 ? `<div class="photo-count" id="pc-${{p.id}}">1 / ${{ph.length}}</div>` : '';
+  const nav = ph.length > 1 ? `<div class="carousel-nav">
     <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${{p.id}}',-1)"><i class="ti ti-chevron-left"></i></button>
     <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${{p.id}}',1)"><i class="ti ti-chevron-right"></i></button>
-  </div><div class="dots">${{dots}}</div>`:'';
-  return`<div class="carousel" data-id="${{p.id}}">
+  </div><div class="dots">${{dots}}</div>` : '';
+  return `<div class="carousel" data-id="${{p.id}}">
     <a class="overlay-link" href="${{firstLink}}" target="_blank"></a>
     ${{imgs}}${{feat}}${{count}}
     <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
     ${{nav}}
   </div>`;
 }}
-function cardHTML(p){{
-  const links=(p.links||[]).map(l=>`<a class="plink" href="${{l.u}}" target="_blank">${{l.l}} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
-  const v=votes[p.id]||'';
-  return`<div id="card-wrap-${{p.id}}" class="card-wrap">
+function cardHTML(p) {{
+  const links = (p.links||[]).map(l => `<a class="plink" href="${{l.u}}" target="_blank">${{l.l}} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
+  const v = votes[p.id] || '';
+  return `<div id="card-wrap-${{p.id}}" class="card-wrap">
     <div class="card${{p.featured?' featured':''}}" id="card-${{p.id}}">
       ${{carouselHTML(p)}}
       <div class="portal-links">${{links}}</div>
@@ -398,8 +406,13 @@ function cardHTML(p){{
           <span class="tag tag-estado">${{p.estado}}</span>
           <span class="tag tag-tipo">${{p.tipo}}</span>
         </div>
-        <div><div class="desc-label">Descripción del portal</div>
-        <div class="desc-block">${{p.desc}}</div></div>
+        <div>
+          <div class="desc-label">Descripción del portal</div>
+          <div class="desc-block">
+            <div class="desc-text" id="desc-${{p.id}}">${{p.desc}}</div>
+            <button class="ver-mas" id="vm-${{p.id}}" onclick="toggleDesc('${{p.id}}')">Ver más</button>
+          </div>
+        </div>
       </div>
       <div class="price-row"><span class="price">${{p.price}}</span></div>
       <div class="vote-bar">
@@ -411,50 +424,99 @@ function cardHTML(p){{
     </div>
   </div>`;
 }}
-function goSlide(id,dir){{
-  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
-  const imgs=document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
-  const dots=document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
-  let cur=cs[id]||0;
-  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
-  cur=(cur+dir+ph.length)%ph.length;cs[id]=cur;
-  imgs[cur].classList.add('active');if(dots[cur])dots[cur].classList.add('active');
-  const pc=document.getElementById(`pc-${{id}}`);if(pc)pc.textContent=`${{cur+1}} / ${{ph.length}}`;
+function toggleDesc(id) {{
+  const el = document.getElementById(`desc-${{id}}`);
+  const btn = document.getElementById(`vm-${{id}}`);
+  if (!el || !btn) return;
+  const expanded = el.classList.toggle('expanded');
+  btn.textContent = expanded ? 'Ver menos' : 'Ver más';
 }}
-function goTo(id,idx){{
-  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
-  const imgs=document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
-  const dots=document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
-  let cur=cs[id]||0;
-  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
-  cs[id]=idx;imgs[idx].classList.add('active');if(dots[idx])dots[idx].classList.add('active');
-  const pc=document.getElementById(`pc-${{id}}`);if(pc)pc.textContent=`${{idx+1}} / ${{ph.length}}`;
+function goSlide(id, dir) {{
+  const p = PROPS.find(x => x.id === id); const ph = p ? p.photos : [];
+  if (!ph.length) return;
+  const imgs = document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
+  const dots = document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
+  let cur = cs[id] || 0;
+  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
+  cur = (cur + dir + ph.length) % ph.length; cs[id] = cur;
+  imgs[cur].classList.add('active'); if(dots[cur]) dots[cur].classList.add('active');
+  const pc = document.getElementById(`pc-${{id}}`); if(pc) pc.textContent = `${{cur+1}} / ${{ph.length}}`;
 }}
-function setVote(id,val,btnEl){{
-  const prev=votes[id];
-  if(prev===val){{delete votes[id];render();return;}}
-  votes[id]=val;
-  if(val==='love')spawnFloater('❤️',btnEl,'float-up');
-  else if(val==='meh')spawnFloater('🤔',btnEl,'float-upright');
-  else spawnFloater('✕',btnEl,'float-right');
-  if(!prev){{animateCard(id,val==='no'?'slide-right':'slide-up');setTimeout(()=>render(),360);}}
+function goTo(id, idx) {{
+  const p = PROPS.find(x => x.id === id); const ph = p ? p.photos : [];
+  if (!ph.length) return;
+  const imgs = document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
+  const dots = document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
+  let cur = cs[id] || 0;
+  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
+  cs[id] = idx; imgs[idx].classList.add('active'); if(dots[idx]) dots[idx].classList.add('active');
+  const pc = document.getElementById(`pc-${{id}}`); if(pc) pc.textContent = `${{idx+1}} / ${{ph.length}}`;
+}}
+function setVote(id, val, btnEl) {{
+  const prev = votes[id];
+  if (prev === val) {{ delete votes[id]; saveVotes(votes); render(); return; }}
+  votes[id] = val; saveVotes(votes);
+  if (val === 'love') spawnFloater('❤️', btnEl, 'float-up');
+  else if (val === 'meh') spawnFloater('🤔', btnEl, 'float-upright');
+  else spawnFloater('✕', btnEl, 'float-right');
+  if (!prev) {{ animateCard(id, val === 'no' ? 'slide-right' : 'slide-up'); setTimeout(() => render(), 360); }}
   else render();
 }}
-function render(){{
-  const loved=PROPS.filter(p=>votes[p.id]==='love');
-  const meh=PROPS.filter(p=>votes[p.id]==='meh');
-  const hidden=new Set(PROPS.filter(p=>votes[p.id]==='no').map(p=>p.id));
-  document.getElementById('count-love').textContent=loved.length||'–';
-  document.getElementById('count-meh').textContent=meh.length||'–';
-  const sl=document.getElementById('sec-love');const sm=document.getElementById('sec-meh');
-  sl.style.display=loved.length?'block':'none';
-  sm.style.display=meh.length?'block':'none';
-  if(loved.length)document.getElementById('grid-love').innerHTML=loved.map(cardHTML).join('');
-  if(meh.length)document.getElementById('grid-meh').innerHTML=meh.map(cardHTML).join('');
-  const feat=PROPS.filter(p=>p.featured&&!votes[p.id]&&!hidden.has(p.id));
-  const others=PROPS.filter(p=>!p.featured&&!votes[p.id]&&!hidden.has(p.id));
-  document.getElementById('grid-featured').innerHTML=feat.length?feat.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
-  document.getElementById('grid-others').innerHTML=others.length?others.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+function render() {{
+  const loved  = PROPS.filter(p => votes[p.id] === 'love');
+  const meh    = PROPS.filter(p => votes[p.id] === 'meh');
+  const hidden = new Set(PROPS.filter(p => votes[p.id] === 'no').map(p => p.id));
+  document.getElementById('count-love').textContent = loved.length || '–';
+  document.getElementById('count-meh').textContent  = meh.length  || '–';
+  const sl = document.getElementById('sec-love'); const sm = document.getElementById('sec-meh');
+  sl.style.display = loved.length ? 'block' : 'none';
+  sm.style.display = meh.length  ? 'block' : 'none';
+  if (loved.length) document.getElementById('grid-love').innerHTML = loved.map(cardHTML).join('');
+  if (meh.length)   document.getElementById('grid-meh').innerHTML  = meh.map(cardHTML).join('');
+  const feat   = PROPS.filter(p => p.featured && !votes[p.id] && !hidden.has(p.id));
+  const others = PROPS.filter(p => !p.featured && !votes[p.id] && !hidden.has(p.id));
+  document.getElementById('grid-featured').innerHTML = feat.length
+    ? feat.map(cardHTML).join('')
+    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+  document.getElementById('grid-others').innerHTML = others.length
+    ? others.map(cardHTML).join('')
+    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+}}
+function openModal() {{
+  const loved = PROPS.filter(p => votes[p.id] === 'love');
+  const meh   = PROPS.filter(p => votes[p.id] === 'meh');
+  function itemHTML(p, cls) {{
+    const links = (p.links||[]).map(l =>
+      `<a class="modal-link" href="${{l.u}}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${{l.l}}</a>`
+    ).join('');
+    return `<div class="modal-item ${{cls}}">
+      <div class="modal-item-info">
+        <div class="modal-item-title">${{p.title}}</div>
+        <div class="modal-item-addr">${{p.addr}}</div>
+        <div class="modal-item-price">${{p.price}}</div>
+      </div>
+      <div class="modal-item-links">${{links}}</div>
+    </div>`;
+  }}
+  let html = '';
+  html += `<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
+  html += loved.length
+    ? `<div class="modal-list">${{loved.map(p => itemHTML(p,'love-border')).join('')}}</div>`
+    : `<p class="modal-empty">Todavía no marcaste ninguna como favorita.</p>`;
+  html += `<div class="modal-section-label"><i class="ti ti-clock"></i> Posibles</div>`;
+  html += meh.length
+    ? `<div class="modal-list">${{meh.map(p => itemHTML(p,'meh-border')).join('')}}</div>`
+    : `<p class="modal-empty">Todavía no marcaste ninguna como posible.</p>`;
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}}
+function closeModal() {{
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}}
+function closeModalOutside(e) {{
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
 }}
 render();
 </script>
@@ -462,30 +524,24 @@ render();
 </html>"""
 
 # ── Main ──────────────────────────────────────────────────────────────────────
-
 def main():
     print("🏠 Casas para Cata — scraper iniciando\n")
-
     props = []
     props += scrape_argenprop()
     props += scrape_zonaprop()
-
     print(f"\n📦 Total antes de deduplicar: {len(props)}")
     props = dedup(props)
     props = props[:MAX_PROPS]
     print(f"✅ Después de deduplicar: {len(props)}")
-
     print("\n📷 Descargando fotos...")
     props = download_all_photos(props)
-
-    week_str = date.today().strftime("%-d de %B de %Y").lower()
-    week_str = week_str[0].upper() + week_str[1:]
-
+    today = date.today()
+    MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
+    week_str = f"{today.day} de {MESES[today.month-1]} de {today.year}"
     print("\n📝 Generando index.html...")
     html = gen_html(props, week_str)
     Path("index.html").write_text(html, encoding="utf-8")
-
-    print("\n✅ Listo. index.html generado con", len(props), "propiedades.")
+    print(f"\n✅ Listo. index.html generado con {len(props)} propiedades.")
 
 if __name__ == "__main__":
     main()
