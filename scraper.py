@@ -313,7 +313,7 @@ def gen_html(props, week_str):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Casas para Cata</title>
+  <title>Chez Coqui</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -413,13 +413,15 @@ def gen_html(props, week_str):
     .modal-link {{ font-size:12px;color:#2563eb;text-decoration:none;border:0.5px solid #93c5fd;border-radius:var(--radius-sm);padding:4px 10px;display:flex;align-items:center;gap:4px;white-space:nowrap; }}
     .modal-link:hover {{ background:#eff6ff; }}
     .modal-empty {{ font-size:13px;color:var(--text3);margin-bottom:2rem; }}
+    .modal-remove {{ font-size:12px;color:var(--red-text);background:var(--red-bg);border:0.5px solid var(--red-border);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap; }}
+    .modal-remove:hover {{ opacity:0.8; }}
   </style>
 </head>
 <body>
 <div class="page">
   <header class="site-header">
     <div>
-      <h1>Casas para Cata</h1>
+      <h1>Chez Coqui</h1>
       <p>Actualizado el {week_str} · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
     </div>
     <button class="mis-votos-btn" onclick="openModal()"><i class="ti ti-heart"></i> Mis votos</button>
@@ -569,7 +571,7 @@ function openModal(){{
   const meh=PROPS.filter(p=>votes[p.id]==='meh');
   function itemHTML(p,cls){{
     const links=(p.links||[]).map(l=>`<a class="modal-link" href="${{l.u}}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${{l.l}}</a>`).join('');
-    return`<div class="modal-item ${{cls}}"><div class="modal-item-info"><div class="modal-item-title">${{p.title}}</div><div class="modal-item-addr">${{p.addr}}</div><div class="modal-item-price">${{p.price}}</div></div><div class="modal-item-links">${{links}}</div></div>`;
+    return`<div class="modal-item ${{cls}}"><div class="modal-item-info"><div class="modal-item-title">${{p.title}}</div><div class="modal-item-addr">${{p.addr}}</div><div class="modal-item-price">${{p.price}}</div></div><div class="modal-item-links">${{links}}<button class="modal-remove" onclick="removeVote('${{p.id}}')"><i class="ti ti-trash" style="font-size:11px"></i> Quitar</button></div></div>`;
   }}
   let html='';
   html+=`<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
@@ -579,6 +581,12 @@ function openModal(){{
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow='hidden';
+}}
+function removeVote(id){{
+  delete votes[id];
+  saveVotes(votes);
+  render();
+  openModal();
 }}
 function closeModal(){{
   document.getElementById('modal-overlay').classList.remove('open');
