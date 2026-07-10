@@ -8,8 +8,7 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:#F7F6F3;--bg2:#EDECEA;--bg3:#E4E2DE;
-      --text:#1A1916;--text2:#5C5A55;--text3:#9A9891;--border:#D8D6D1;
+      --bg:#F7F6F3;--bg2:#EDECEA;--text:#1A1916;--text2:#5C5A55;--text3:#9A9891;--border:#D8D6D1;
       --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#085041;--green-border:#5DCAA5;
       --amber:#EF9F27;--amber-bg:#FAEEDA;--amber-text:#633806;--amber-border:#EF9F27;
       --purple:#7B74E0;--purple-bg:#EEEDFE;--purple-text:#3C3489;--purple-border:#AFA9EC;
@@ -41,7 +40,7 @@
     .carousel-placeholder { position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3); }
     .carousel-placeholder i { font-size:36px; }
     .carousel-nav { position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;pointer-events:none;z-index:10; }
-    .nav-btn { width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;transition:background .15s; }
+    .nav-btn { width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px; }
     .nav-btn:hover { background:rgba(0,0,0,0.7); }
     .dots { position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:10;pointer-events:none; }
     .dot { width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);pointer-events:all;cursor:pointer;transition:background .2s; }
@@ -65,7 +64,7 @@
     .desc-text { display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden; }
     .desc-text.expanded { display:block;overflow:visible; }
     .ver-mas { font-size:11px;color:var(--green-text);cursor:pointer;margin-top:4px;display:inline-block;font-weight:500;background:none;border:none;padding:0; }
-    .price-row { display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--border);padding:.75rem 1.25rem; }
+    .price-row { border-top:0.5px solid var(--border);padding:.75rem 1.25rem; }
     .price { font-size:15px;font-weight:600;color:var(--text); }
     .vote-bar { border-top:0.5px solid var(--border);padding:.6rem 1.25rem;display:flex;align-items:center;gap:7px;flex-wrap:wrap; }
     .vote-label { font-size:12px;color:var(--text3);margin-right:2px; }
@@ -90,7 +89,6 @@
     .modal-header { display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10; }
     .modal-header h2 { font-size:18px;font-weight:600; }
     .modal-close { background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;display:flex;align-items:center; }
-    .modal-close:hover { color:var(--text); }
     .modal-body { padding:1.5rem; }
     .modal-section-label { font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:6px; }
     .modal-list { display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem; }
@@ -114,9 +112,7 @@
       <h1>Casas para Cata</h1>
       <p>Actualizado el 10 de julio de 2026 · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
     </div>
-    <button class="mis-votos-btn" onclick="openModal()">
-      <i class="ti ti-heart"></i> Mis votos
-    </button>
+    <button class="mis-votos-btn" onclick="openModal()"><i class="ti ti-heart"></i> Mis votos</button>
   </header>
   <div class="metrics">
     <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val">4</div></div>
@@ -125,51 +121,24 @@
     <div class="metric"><div class="metric-label">Favoritas</div><div class="metric-val" id="count-love">–</div></div>
     <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" id="count-meh">–</div></div>
   </div>
-  <div id="sec-love" style="display:none">
-    <div class="section-label"><i class="ti ti-heart"></i> Favoritas</div>
-    <div class="grid" id="grid-love"></div>
-    <hr class="divider">
-  </div>
-  <div id="sec-meh" style="display:none">
-    <div class="section-label"><i class="ti ti-clock"></i> Posibles</div>
-    <div class="grid" id="grid-meh"></div>
-    <hr class="divider">
-  </div>
+  <div id="sec-love" style="display:none"><div class="section-label"><i class="ti ti-heart"></i> Favoritas</div><div class="grid" id="grid-love"></div><hr class="divider"></div>
+  <div id="sec-meh" style="display:none"><div class="section-label"><i class="ti ti-clock"></i> Posibles</div><div class="grid" id="grid-meh"></div><hr class="divider"></div>
   <div class="section-label"><i class="ti ti-star"></i> Destacadas</div>
   <div class="grid" id="grid-featured"></div>
   <div class="section-label" style="margin-top:.25rem"><i class="ti ti-list"></i> Otras opciones</div>
   <div class="grid" id="grid-others"></div>
 </div>
-
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
-    <div class="modal-header">
-      <h2>Mis votos</h2>
-      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
-    </div>
+    <div class="modal-header"><h2>Mis votos</h2><button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button></div>
     <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
-
 <script>
 const PROPS = [
   {
-    "id": "zp-e5bf8af88b",
-    "title": "300 m² tot.4 amb.3 dorm.1 baño2 coch.",
-    "addr": "Villa Martelli · Villa Martelli",
-    "price": "Consultar",
-    "zona": "Villa Martelli",
-    "estado": "A confirmar",
-    "tipo": "Casa / PB",
-    "desc": "Ver descripción completa en el portal.",
-    "photo_urls": [],
-    "photos": [],
-    "featured": true,
-    "links": []
-  },
-  {
-    "id": "zp-e975857127",
-    "title": "129 m² tot.4 amb.3 dorm.3 baños",
+    "id": "zp-9b01025763",
+    "title": "250 m² tot.5 amb.3 dorm.3 baños2 coch.",
     "addr": "Florida · Florida",
     "price": "Consultar",
     "zona": "Florida",
@@ -182,8 +151,8 @@ const PROPS = [
     "links": []
   },
   {
-    "id": "zp-e487695115",
-    "title": "220 m² tot.3 amb.2 dorm.1 baño1 coch.",
+    "id": "zp-6c2544d5a8",
+    "title": "311 m² tot.6 amb.5 dorm.3 baños1 coch.",
     "addr": "Munro · Munro",
     "price": "Consultar",
     "zona": "Munro",
@@ -196,8 +165,22 @@ const PROPS = [
     "links": []
   },
   {
-    "id": "zp-edf4886eee",
-    "title": "880 m² tot.9 amb.4 dorm.4 baños3 coch.",
+    "id": "zp-ef58297a6b",
+    "title": "416 m² tot.7 amb.4 dorm.4 baños3 coch.",
+    "addr": "Villa Martelli · Villa Martelli",
+    "price": "Consultar",
+    "zona": "Villa Martelli",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [],
+    "photos": [],
+    "featured": true,
+    "links": []
+  },
+  {
+    "id": "zp-45879d34c3",
+    "title": "346 m² tot.6 amb.4 dorm.4 baños2 coch.",
     "addr": "Vicente Lopez · Vicente Lopez",
     "price": "Consultar",
     "zona": "Vicente Lopez",
@@ -212,57 +195,52 @@ const PROPS = [
 ];
 const STORAGE_KEY = 'casas-cata-votos';
 const cs = {};
-function loadVotes() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } }
-function saveVotes(v) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch {} }
+function loadVotes(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}; }catch{return{};} }
+function saveVotes(v){ try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(v)); }catch{} }
 let votes = loadVotes();
-
-function spawnFloater(emoji, btnEl, anim) {
-  const rect = btnEl.getBoundingClientRect();
-  const el = document.createElement('div');
-  el.className = 'floater'; el.textContent = emoji;
-  el.style.left = (rect.left + rect.width/2 - 14) + 'px';
-  el.style.top = (rect.top - 10) + 'px';
-  el.style.animation = `${anim} 0.7s ease-out forwards`;
-  document.body.appendChild(el); setTimeout(() => el.remove(), 750);
+function spawnFloater(emoji,btnEl,anim){
+  const rect=btnEl.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='floater';el.textContent=emoji;
+  el.style.left=(rect.left+rect.width/2-14)+'px';
+  el.style.top=(rect.top-10)+'px';
+  el.style.animation=`${anim} 0.7s ease-out forwards`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),750);
 }
-function animateCard(id, animName) {
-  const wrap = document.querySelector(`#card-wrap-${id}`);
-  if (wrap) wrap.style.animation = `${animName} 0.35s ease-out forwards`;
+function animateCard(id,animName){
+  const wrap=document.querySelector(`#card-wrap-${id}`);
+  if(wrap)wrap.style.animation=`${animName} 0.35s ease-out forwards`;
 }
-function carouselHTML(p) {
-  const ph = p.photos || [];
-  const firstLink = (p.links && p.links[0]) ? p.links[0].u : '#';
-  if (!ph.length) return `<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
-  const imgs = ph.map((s,i) => `<img src="${s}" alt="Foto ${i+1}" class="${i===0?'active':''}" loading="lazy">`).join('');
-  const dots = ph.length > 1 ? ph.map((_,i) => `<span class="dot${i===0?' active':''}" onclick="event.stopPropagation();goTo('${p.id}',${i})"></span>`).join('') : '';
-  const feat = p.featured ? `<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>` : '';
-  const count = ph.length > 1 ? `<div class="photo-count" id="pc-${p.id}">1 / ${ph.length}</div>` : '';
-  const nav = ph.length > 1 ? `<div class="carousel-nav">
+function carouselHTML(p){
+  const ph=p.photos||[];
+  const firstLink=(p.links&&p.links[0])?p.links[0].u:'#';
+  if(!ph.length)return`<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
+  const imgs=ph.map((s,i)=>`<img src="${s}" alt="Foto ${i+1}" class="${i===0?'active':''}" loading="lazy">`).join('');
+  const dots=ph.length>1?ph.map((_,i)=>`<span class="dot${i===0?' active':''}" onclick="event.stopPropagation();goTo('${p.id}',${i})"></span>`).join(''):'';
+  const feat=p.featured?`<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>`:'';
+  const count=ph.length>1?`<div class="photo-count" id="pc-${p.id}">1 / ${ph.length}</div>`:'';
+  const nav=ph.length>1?`<div class="carousel-nav">
     <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${p.id}',-1)"><i class="ti ti-chevron-left"></i></button>
     <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${p.id}',1)"><i class="ti ti-chevron-right"></i></button>
-  </div><div class="dots">${dots}</div>` : '';
-  return `<div class="carousel" data-id="${p.id}">
+  </div><div class="dots">${dots}</div>`:'';
+  return`<div class="carousel" data-id="${p.id}">
     <a class="overlay-link" href="${firstLink}" target="_blank"></a>
     ${imgs}${feat}${count}
     <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
     ${nav}
   </div>`;
 }
-function cardHTML(p) {
-  const links = (p.links||[]).map(l => `<a class="plink" href="${l.u}" target="_blank">${l.l} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
-  const v = votes[p.id] || '';
-  return `<div id="card-wrap-${p.id}" class="card-wrap">
+function cardHTML(p){
+  const links=(p.links||[]).map(l=>`<a class="plink" href="${l.u}" target="_blank">${l.l} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
+  const v=votes[p.id]||'';
+  return`<div id="card-wrap-${p.id}" class="card-wrap">
     <div class="card${p.featured?' featured':''}" id="card-${p.id}">
       ${carouselHTML(p)}
       <div class="portal-links">${links}</div>
       <div class="card-body">
         <div class="card-title">${p.title}</div>
         <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> ${p.addr}</div>
-        <div class="tags">
-          <span class="tag tag-zona">${p.zona}</span>
-          <span class="tag tag-estado">${p.estado}</span>
-          <span class="tag tag-tipo">${p.tipo}</span>
-        </div>
+        <div class="tags"><span class="tag tag-zona">${p.zona}</span><span class="tag tag-estado">${p.estado}</span><span class="tag tag-tipo">${p.tipo}</span></div>
         <div>
           <div class="desc-label">Descripción del portal</div>
           <div class="desc-block">
@@ -281,99 +259,80 @@ function cardHTML(p) {
     </div>
   </div>`;
 }
-function toggleDesc(id) {
-  const el = document.getElementById(`desc-${id}`);
-  const btn = document.getElementById(`vm-${id}`);
-  if (!el || !btn) return;
-  const expanded = el.classList.toggle('expanded');
-  btn.textContent = expanded ? 'Ver menos' : 'Ver más';
+function toggleDesc(id){
+  const el=document.getElementById(`desc-${id}`);
+  const btn=document.getElementById(`vm-${id}`);
+  if(!el||!btn)return;
+  const exp=el.classList.toggle('expanded');
+  btn.textContent=exp?'Ver menos':'Ver más';
 }
-function goSlide(id, dir) {
-  const p = PROPS.find(x => x.id === id); const ph = p ? p.photos : [];
-  if (!ph.length) return;
-  const imgs = document.querySelectorAll(`.carousel[data-id="${id}"] img`);
-  const dots = document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
-  let cur = cs[id] || 0;
-  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
-  cur = (cur + dir + ph.length) % ph.length; cs[id] = cur;
-  imgs[cur].classList.add('active'); if(dots[cur]) dots[cur].classList.add('active');
-  const pc = document.getElementById(`pc-${id}`); if(pc) pc.textContent = `${cur+1} / ${ph.length}`;
+function goSlide(id,dir){
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${id}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cur=(cur+dir+ph.length)%ph.length;cs[id]=cur;
+  imgs[cur].classList.add('active');if(dots[cur])dots[cur].classList.add('active');
+  const pc=document.getElementById(`pc-${id}`);if(pc)pc.textContent=`${cur+1} / ${ph.length}`;
 }
-function goTo(id, idx) {
-  const p = PROPS.find(x => x.id === id); const ph = p ? p.photos : [];
-  if (!ph.length) return;
-  const imgs = document.querySelectorAll(`.carousel[data-id="${id}"] img`);
-  const dots = document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
-  let cur = cs[id] || 0;
-  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
-  cs[id] = idx; imgs[idx].classList.add('active'); if(dots[idx]) dots[idx].classList.add('active');
-  const pc = document.getElementById(`pc-${id}`); if(pc) pc.textContent = `${idx+1} / ${ph.length}`;
+function goTo(id,idx){
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${id}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${id}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cs[id]=idx;imgs[idx].classList.add('active');if(dots[idx])dots[idx].classList.add('active');
+  const pc=document.getElementById(`pc-${id}`);if(pc)pc.textContent=`${idx+1} / ${ph.length}`;
 }
-function setVote(id, val, btnEl) {
-  const prev = votes[id];
-  if (prev === val) { delete votes[id]; saveVotes(votes); render(); return; }
-  votes[id] = val; saveVotes(votes);
-  if (val === 'love') spawnFloater('❤️', btnEl, 'float-up');
-  else if (val === 'meh') spawnFloater('🤔', btnEl, 'float-upright');
-  else spawnFloater('✕', btnEl, 'float-right');
-  if (!prev) { animateCard(id, val === 'no' ? 'slide-right' : 'slide-up'); setTimeout(() => render(), 360); }
+function setVote(id,val,btnEl){
+  const prev=votes[id];
+  if(prev===val){delete votes[id];saveVotes(votes);render();return;}
+  votes[id]=val;saveVotes(votes);
+  if(val==='love')spawnFloater('❤️',btnEl,'float-up');
+  else if(val==='meh')spawnFloater('🤔',btnEl,'float-upright');
+  else spawnFloater('✕',btnEl,'float-right');
+  if(!prev){animateCard(id,val==='no'?'slide-right':'slide-up');setTimeout(()=>render(),360);}
   else render();
 }
-function render() {
-  const loved  = PROPS.filter(p => votes[p.id] === 'love');
-  const meh    = PROPS.filter(p => votes[p.id] === 'meh');
-  const hidden = new Set(PROPS.filter(p => votes[p.id] === 'no').map(p => p.id));
-  document.getElementById('count-love').textContent = loved.length || '–';
-  document.getElementById('count-meh').textContent  = meh.length  || '–';
-  const sl = document.getElementById('sec-love'); const sm = document.getElementById('sec-meh');
-  sl.style.display = loved.length ? 'block' : 'none';
-  sm.style.display = meh.length  ? 'block' : 'none';
-  if (loved.length) document.getElementById('grid-love').innerHTML = loved.map(cardHTML).join('');
-  if (meh.length)   document.getElementById('grid-meh').innerHTML  = meh.map(cardHTML).join('');
-  const feat   = PROPS.filter(p => p.featured && !votes[p.id] && !hidden.has(p.id));
-  const others = PROPS.filter(p => !p.featured && !votes[p.id] && !hidden.has(p.id));
-  document.getElementById('grid-featured').innerHTML = feat.length
-    ? feat.map(cardHTML).join('')
-    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
-  document.getElementById('grid-others').innerHTML = others.length
-    ? others.map(cardHTML).join('')
-    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+function render(){
+  const loved=PROPS.filter(p=>votes[p.id]==='love');
+  const meh=PROPS.filter(p=>votes[p.id]==='meh');
+  const hidden=new Set(PROPS.filter(p=>votes[p.id]==='no').map(p=>p.id));
+  document.getElementById('count-love').textContent=loved.length||'–';
+  document.getElementById('count-meh').textContent=meh.length||'–';
+  const sl=document.getElementById('sec-love');const sm=document.getElementById('sec-meh');
+  sl.style.display=loved.length?'block':'none';
+  sm.style.display=meh.length?'block':'none';
+  if(loved.length)document.getElementById('grid-love').innerHTML=loved.map(cardHTML).join('');
+  if(meh.length)document.getElementById('grid-meh').innerHTML=meh.map(cardHTML).join('');
+  const feat=PROPS.filter(p=>p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  const others=PROPS.filter(p=>!p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  document.getElementById('grid-featured').innerHTML=feat.length?feat.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+  document.getElementById('grid-others').innerHTML=others.length?others.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
 }
-function openModal() {
-  const loved = PROPS.filter(p => votes[p.id] === 'love');
-  const meh   = PROPS.filter(p => votes[p.id] === 'meh');
-  function itemHTML(p, cls) {
-    const links = (p.links||[]).map(l =>
-      `<a class="modal-link" href="${l.u}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${l.l}</a>`
-    ).join('');
-    return `<div class="modal-item ${cls}">
-      <div class="modal-item-info">
-        <div class="modal-item-title">${p.title}</div>
-        <div class="modal-item-addr">${p.addr}</div>
-        <div class="modal-item-price">${p.price}</div>
-      </div>
-      <div class="modal-item-links">${links}</div>
-    </div>`;
+function openModal(){
+  const loved=PROPS.filter(p=>votes[p.id]==='love');
+  const meh=PROPS.filter(p=>votes[p.id]==='meh');
+  function itemHTML(p,cls){
+    const links=(p.links||[]).map(l=>`<a class="modal-link" href="${l.u}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${l.l}</a>`).join('');
+    return`<div class="modal-item ${cls}"><div class="modal-item-info"><div class="modal-item-title">${p.title}</div><div class="modal-item-addr">${p.addr}</div><div class="modal-item-price">${p.price}</div></div><div class="modal-item-links">${links}</div></div>`;
   }
-  let html = '';
-  html += `<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
-  html += loved.length
-    ? `<div class="modal-list">${loved.map(p => itemHTML(p,'love-border')).join('')}</div>`
-    : `<p class="modal-empty">Todavía no marcaste ninguna como favorita.</p>`;
-  html += `<div class="modal-section-label"><i class="ti ti-clock"></i> Posibles</div>`;
-  html += meh.length
-    ? `<div class="modal-list">${meh.map(p => itemHTML(p,'meh-border')).join('')}</div>`
-    : `<p class="modal-empty">Todavía no marcaste ninguna como posible.</p>`;
-  document.getElementById('modal-body').innerHTML = html;
+  let html='';
+  html+=`<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
+  html+=loved.length?`<div class="modal-list">${loved.map(p=>itemHTML(p,'love-border')).join('')}</div>`:`<p class="modal-empty">Todavía no marcaste ninguna como favorita.</p>`;
+  html+=`<div class="modal-section-label"><i class="ti ti-clock"></i> Posibles</div>`;
+  html+=meh.length?`<div class="modal-list">${meh.map(p=>itemHTML(p,'meh-border')).join('')}</div>`:`<p class="modal-empty">Todavía no marcaste ninguna como posible.</p>`;
+  document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
-function closeModal() {
+function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+  document.body.style.overflow='';
 }
-function closeModalOutside(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
+function closeModalOutside(e){
+  if(e.target===document.getElementById('modal-overlay'))closeModal();
 }
 render();
 </script>
