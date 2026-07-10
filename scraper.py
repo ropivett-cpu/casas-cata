@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Casas para Cata — scraper diario v3
-Selectores ajustados a la estructura real de Argenprop y Zonaprop
+Casas para Cata — scraper diario v4
+Estrategia: recolectar links de las páginas de resultados y extraer
+todos los datos de las páginas individuales (selectores confirmados).
 """
 
 import json, time, random, hashlib, re
@@ -13,12 +14,22 @@ import requests
 from bs4 import BeautifulSoup
 
 # ── Configuración ─────────────────────────────────────────────────────────────
-ZONAS      = ["florida", "munro", "villa-martelli", "vicente-lopez"]
 MAX_PROPS  = 20
 MAX_PHOTOS = 5
 MAX_PRICE  = 150000
 PHOTOS_DIR = Path("photos")
 DELAY      = (2, 4)
+
+# URLs de búsqueda (formato confirmado en el navegador)
+ZONAPROP_SEARCHES = {
+    "Florida":        "https://www.zonaprop.com.ar/casas-venta-florida-menos-150000-dolar.html",
+    "Munro":          "https://www.zonaprop.com.ar/casas-venta-munro-menos-150000-dolar.html",
+    "Villa Martelli": "https://www.zonaprop.com.ar/casas-venta-villa-martelli-menos-150000-dolar.html",
+    "Vicente López":  "https://www.zonaprop.com.ar/casas-venta-vicente-lopez-menos-150000-dolar.html",
+}
+
+# Una sola búsqueda de Argenprop cubre todas las zonas
+ARGENPROP_SEARCH = "https://www.argenprop.com/casas/venta/florida-vicente-lopez-o-munro-o-vicente-lopez-vicente-lopez-o-villa-martelli/dolares-hasta-150000"
 
 HEADERS = {
     "User-Agent": (
@@ -69,223 +80,200 @@ def is_within_budget(price_text):
         return True
     return usd <= MAX_PRICE
 
+def infer_zone(address_text):
+    t = address_text.lower()
+    if "martelli" in t: return "Villa Martelli"
+    if "munro" in t: return "Munro"
+    if "florida" in t: return "Florida"
+    if "vicente" in t or "lopez" in t or "lópez" in t: return "Vicente López"
+    return "Zona Norte"
+
 def download_photo(url, prop_id, idx):
     try:
         ext = Path(urlparse(url).path).suffix or ".jpg"
-        if len(ext) > 5: ext = ".jpg"
+        if len(ext) > 5 or "?" in ext: ext = ".jpg"
         filename = PHOTOS_DIR / f"p{prop_id}_{idx}{ext}"
         if filename.exists():
             return str(filename)
         r = get(url)
-        if r and r.content:
+        if r and r.content and len(r.content) > 5000:  # descartar placeholders diminutos
             filename.write_bytes(r.content)
             print(f"    📷 foto {idx}: {filename.name}")
             return str(filename)
     except Exception as e:
-        print(f"    ⚠ error descargando foto: {e}")
+        print(f"    ⚠ error foto: {e}")
     return None
 
 # ── Zonaprop ──────────────────────────────────────────────────────────────────
-ZONA_MAP_ZP = {
-    "florida":        "florida-buenos-aires",
-    "munro":          "munro",
-    "villa-martelli": "villa-martelli",
-    "vicente-lopez":  "vicente-lopez",
-}
+def collect_links_zonaprop(search_url):
+    """Junta los links a publicaciones individuales de una página de resultados."""
+    r = get(search_url)
+    if not r: return []
+    soup = BeautifulSoup(r.text, "html.parser")
+    links = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if "/propiedades/clasificado/" in href:
+            full = href if href.startswith("http") else f"https://www.zonaprop.com.ar{href}"
+            full = full.split("?")[0]  # limpiar parámetros de tracking
+            if full not in links:
+                links.append(full)
+    return links
+
+def parse_property_zonaprop(url, zone_hint):
+    """Extrae todos los datos de una publicación individual de Zonaprop."""
+    r = get(url)
+    if not r: return None
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    # Título — selector confirmado: h1.title-property
+    title_el = soup.select_one("h1.title-property, h1[class*='title']")
+    title = title_el.get_text(strip=True) if title_el else ""
+    if not title: return None
+
+    # Precio — buscar el texto con USD
+    price = "Consultar"
+    for el in soup.find_all(["span","div","p"]):
+        txt = el.get_text(strip=True)
+        if re.match(r'^(USD|U\$S|U\$D)\s*[\d\.,]+$', txt):
+            price = txt
+            break
+
+    # Dirección — selector confirmado: h4
+    addr_el = soup.select_one("h4")
+    addr = addr_el.get_text(strip=True) if addr_el else zone_hint
+
+    # Descripción
+    desc_el = soup.select_one("#longDescription, [class*='description'], [id*='description']")
+    desc = desc_el.get_text(strip=True) if desc_el else ""
+
+    # Fotos — selector confirmado: imgs de zonapropcdn
+    photos = []
+    for img in soup.find_all("img"):
+        src = img.get("src","") or img.get("data-src","")
+        if "zonapropcdn" in src and "avisos" in src and src not in photos:
+            photos.append(src.split("?")[0])
+        if len(photos) >= MAX_PHOTOS: break
+
+    zone = infer_zone(addr)
+    prop_id = f"zp-{photo_id(url)}"
+    return {
+        "id": prop_id, "title": title,
+        "addr": addr, "price": price, "zona": zone,
+        "estado": "A confirmar", "tipo": "Casa / PB",
+        "desc": desc[:600] if desc else "Ver descripción completa en el portal.",
+        "photo_urls": photos, "photos": [], "featured": False,
+        "links": [{"l": "Zonaprop", "u": url}]
+    }
 
 def scrape_zonaprop():
     props = []
-    for zona, slug in ZONA_MAP_ZP.items():
-        url = f"https://www.zonaprop.com.ar/casas-venta-{slug}-hasta-150000-dolares.html"
-        print(f"\n🔍 Zonaprop → {zona}")
-        r = get(url)
-        if not r:
-            continue
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        # Cada propiedad en la lista
-        listings = soup.select("[data-id], [data-posting-id], .posting-card, [class*='postingCard']")
-        if not listings:
-            # fallback: buscar por data attributes
-            listings = soup.find_all(attrs={"data-id": True})
-        print(f"   {len(listings)} resultados")
-
-        for item in listings[:10]:
-            try:
-                # Título
-                title_el = item.select_one("h2, h3, .posting-title, [class*='title']")
-                title = title_el.get_text(strip=True) if title_el else ""
-                if not title or len(title) < 5:
-                    continue
-
-                # Precio
-                price_el = item.select_one("[class*='price'], .price")
-                price = re.sub(r'\s+', ' ', price_el.get_text()).strip() if price_el else "Consultar"
-
-                if not is_within_budget(price):
-                    print(f"   ⛔ Fuera de presupuesto ({price}): {title[:40]}")
-                    continue
-
-                # Dirección
-                addr_el = item.select_one("h4, [class*='address'], [class*='location']")
-                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
-
-                # Link
-                link_el = item.select_one("a[href]")
-                link = ""
-                if link_el:
-                    href = link_el.get("href", "")
-                    link = href if href.startswith("http") else f"https://www.zonaprop.com.ar{href}"
-
-                # Descripción
-                desc_el = item.select_one("[class*='desc'], [class*='detail'], p")
-                desc = desc_el.get_text(strip=True) if desc_el else ""
-
-                # Fotos desde la página individual
-                photo_urls = []
-                if link:
-                    print(f"   📄 {title[:45]}")
-                    photo_urls = fetch_photos_zonaprop(link)
-                    print(f"      {len(photo_urls)} fotos")
-
-                prop_id = f"zp-{photo_id(link or title)}"
-                props.append({
-                    "id": prop_id, "title": title,
-                    "addr": f"{addr} · {zona.replace('-',' ').title()}",
-                    "price": price,
-                    "zona": zona.replace("-"," ").title(),
-                    "estado": "A confirmar", "tipo": "Casa / PB",
-                    "desc": desc or "Ver descripción completa en el portal.",
-                    "photo_urls": photo_urls, "photos": [], "featured": False,
-                    "links": [{"l": "Zonaprop", "u": link}] if link else []
-                })
-            except Exception as e:
-                print(f"   ⚠ error: {e}")
+    for zone, search_url in ZONAPROP_SEARCHES.items():
+        print(f"\n🔍 Zonaprop → {zone}")
+        links = collect_links_zonaprop(search_url)
+        print(f"   {len(links)} links encontrados")
+        for link in links[:6]:
+            print(f"   📄 {link.split('/')[-1][:60]}")
+            p = parse_property_zonaprop(link, zone)
+            if not p:
+                print("      ⚠ no se pudo parsear")
+                continue
+            if not is_within_budget(p["price"]):
+                print(f"      ⛔ Fuera de presupuesto: {p['price']}")
+                continue
+            print(f"      ✅ {p['title'][:50]} — {p['price']} — {len(p['photo_urls'])} fotos")
+            props.append(p)
     return props
-
-def fetch_photos_zonaprop(url):
-    r = get(url)
-    if not r: return []
-    soup = BeautifulSoup(r.text, "html.parser")
-    photos = []
-    # Selector exacto que vimos en el inspector
-    for img in soup.select("img[class*='imgProperty'], img[class*='imageGrid']"):
-        src = img.get("src","")
-        if src and src.startswith("http") and src not in photos:
-            # Pedir versión más grande
-            src = re.sub(r'\d+x\d+', '1200x1200', src)
-            photos.append(src)
-        if len(photos) >= MAX_PHOTOS: break
-
-    # Fallback: cualquier img de zonapropcdn
-    if len(photos) < 2:
-        for img in soup.find_all("img"):
-            src = img.get("src","") or img.get("data-src","")
-            if "zonapropcdn" in src and src not in photos:
-                photos.append(src)
-            if len(photos) >= MAX_PHOTOS: break
-
-    return photos[:MAX_PHOTOS]
 
 # ── Argenprop ─────────────────────────────────────────────────────────────────
-def scrape_argenprop():
-    props = []
-    ZONA_MAP_AP = {
-        "florida":        "florida",
-        "munro":          "munro",
-        "villa-martelli": "villa-martelli",
-        "vicente-lopez":  "vicente-lopez",
-    }
-    for zona, slug in ZONA_MAP_AP.items():
-        url = f"https://www.argenprop.com/casas/venta/localidad-{slug}?precio-dolares-hasta-150000"
-        print(f"\n🔍 Argenprop → {zona}")
-        r = get(url)
-        if not r: continue
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        listings = soup.select(".listing__item, [class*='listing-card'], .card--postulation")
-        if not listings:
-            listings = soup.select("div[class*='card']")
-        print(f"   {len(listings)} resultados")
-
-        for item in listings[:10]:
-            try:
-                # Título
-                title_el = item.select_one("h2, h3, .card__title, [class*='title']")
-                title = title_el.get_text(strip=True) if title_el else ""
-                if not title or len(title) < 5: continue
-
-                # Precio — selector exacto del inspector
-                price_el = item.select_one(".titlebar__price, [class*='price']")
-                price = re.sub(r'\s+', ' ', price_el.get_text()).strip() if price_el else "Consultar"
-
-                if not is_within_budget(price):
-                    print(f"   ⛔ Fuera de presupuesto ({price}): {title[:40]}")
-                    continue
-
-                # Dirección
-                addr_el = item.select_one("span[class*='address'], span[class*='location'], .card__address")
-                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
-
-                # Link
-                link_el = item.select_one("a[href]")
-                link = ""
-                if link_el:
-                    href = link_el.get("href","")
-                    link = href if href.startswith("http") else f"https://www.argenprop.com{href}"
-
-                # Descripción
-                desc_el = item.select_one("[class*='desc'], p")
-                desc = desc_el.get_text(strip=True) if desc_el else ""
-
-                # Fotos desde la página individual
-                photo_urls = []
-                if link:
-                    print(f"   📄 {title[:45]}")
-                    photo_urls = fetch_photos_argenprop(link)
-                    print(f"      {len(photo_urls)} fotos")
-
-                prop_id = f"ar-{photo_id(link or title)}"
-                props.append({
-                    "id": prop_id, "title": title,
-                    "addr": f"{addr} · {zona.replace('-',' ').title()}",
-                    "price": price,
-                    "zona": zona.replace("-"," ").title(),
-                    "estado": "A confirmar", "tipo": "Casa / PB",
-                    "desc": desc or "Ver descripción completa en el portal.",
-                    "photo_urls": photo_urls, "photos": [], "featured": False,
-                    "links": [{"l": "Argenprop", "u": link}] if link else []
-                })
-            except Exception as e:
-                print(f"   ⚠ error: {e}")
-    return props
-
-def fetch_photos_argenprop(url):
-    r = get(url)
+def collect_links_argenprop(search_url):
+    r = get(search_url)
     if not r: return []
     soup = BeautifulSoup(r.text, "html.parser")
-    photos = []
+    links = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        # Los links de publicaciones de Argenprop terminan en --NNNNNNN
+        if re.search(r'--\d{6,}$', href):
+            full = href if href.startswith("http") else f"https://www.argenprop.com{href}"
+            if full not in links:
+                links.append(full)
+    return links
 
-    # Las fotos en Argenprop están en divs con background-image en el style
+def parse_property_argenprop(url):
+    r = get(url)
+    if not r: return None
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    # Título
+    title_el = soup.select_one("h1, .titlebar__title, [class*='titlebar'] h2")
+    title = title_el.get_text(strip=True) if title_el else ""
+    if not title: return None
+
+    # Precio — selector confirmado: .titlebar__price
+    price_el = soup.select_one(".titlebar__price")
+    price = re.sub(r'\s+',' ', price_el.get_text(strip=True)) if price_el else "Consultar"
+
+    # Dirección
+    addr_el = soup.select_one(".titlebar__address, [class*='address'] span, .location-container span")
+    addr = addr_el.get_text(strip=True) if addr_el else ""
+    if not addr:
+        # fallback: buscar spans con texto que parezca dirección
+        for span in soup.find_all("span"):
+            txt = span.get_text(strip=True)
+            if re.search(r'al \d+|,.*Vicente|,.*Florida|,.*Munro|,.*Martelli', txt):
+                addr = txt
+                break
+    if not addr: addr = "Zona Norte GBA"
+
+    # Descripción
+    desc_el = soup.select_one("#description, [class*='description'], .section-description")
+    desc = desc_el.get_text(strip=True) if desc_el else ""
+
+    # Fotos — confirmado: divs con background-image + imgs de static-content
+    photos = []
     for div in soup.select("div[style*='background']"):
         style = div.get("style","")
-        matches = re.findall(r'url\(([^)]+)\)', style)
-        for m in matches:
+        for m in re.findall(r'url\(([^)]+)\)', style):
             m = m.strip("'\" ")
-            if m.startswith("http") and "placeholder" not in m and "logo" not in m:
-                if m not in photos:
-                    photos.append(m)
+            if m.startswith("http") and "placeholder" not in m and "logo" not in m and m not in photos:
+                photos.append(m)
         if len(photos) >= MAX_PHOTOS: break
-
-    # Fallback: imgs directas
-    if len(photos) < 2:
+    if len(photos) < MAX_PHOTOS:
         for img in soup.find_all("img"):
             src = img.get("src","") or img.get("data-src","")
             if src and "static-content" in src and src not in photos:
                 photos.append(src)
             if len(photos) >= MAX_PHOTOS: break
 
-    return photos[:MAX_PHOTOS]
+    zone = infer_zone(addr + " " + title)
+    prop_id = f"ar-{photo_id(url)}"
+    return {
+        "id": prop_id, "title": title,
+        "addr": addr, "price": price, "zona": zone,
+        "estado": "A confirmar", "tipo": "Casa / PB",
+        "desc": desc[:600] if desc else "Ver descripción completa en el portal.",
+        "photo_urls": photos[:MAX_PHOTOS], "photos": [], "featured": False,
+        "links": [{"l": "Argenprop", "u": url}]
+    }
+
+def scrape_argenprop():
+    props = []
+    print(f"\n🔍 Argenprop → todas las zonas")
+    links = collect_links_argenprop(ARGENPROP_SEARCH)
+    print(f"   {len(links)} links encontrados")
+    for link in links[:12]:
+        print(f"   📄 {link.split('/')[-1][:60]}")
+        p = parse_property_argenprop(link)
+        if not p:
+            print("      ⚠ no se pudo parsear")
+            continue
+        if not is_within_budget(p["price"]):
+            print(f"      ⛔ Fuera de presupuesto: {p['price']}")
+            continue
+        print(f"      ✅ {p['title'][:50]} — {p['price']} — {len(p['photo_urls'])} fotos")
+        props.append(p)
+    return props
 
 # ── Dedup ─────────────────────────────────────────────────────────────────────
 def dedup(props):
@@ -606,7 +594,7 @@ render();
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    print("🏠 Casas para Cata — scraper v3\n")
+    print("🏠 Casas para Cata — scraper v4\n")
     props = []
     props += scrape_zonaprop()
     props += scrape_argenprop()
