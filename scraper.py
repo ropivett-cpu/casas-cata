@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Casas para Cata — scraper diario v2
-- Entra a cada publicación para obtener múltiples fotos
-- Filtra propiedades fuera del presupuesto
+Casas para Cata — scraper diario v3
+Selectores ajustados a la estructura real de Argenprop y Zonaprop
 """
 
 import json, time, random, hashlib, re
@@ -14,12 +13,12 @@ import requests
 from bs4 import BeautifulSoup
 
 # ── Configuración ─────────────────────────────────────────────────────────────
-ZONAS       = ["villa-martelli", "florida", "munro", "vicente-lopez"]
-MAX_PROPS   = 20
-MAX_PHOTOS  = 5
-MAX_PRICE   = 150000   # USD
-PHOTOS_DIR  = Path("photos")
-DELAY       = (2, 4)
+ZONAS      = ["florida", "munro", "villa-martelli", "vicente-lopez"]
+MAX_PROPS  = 20
+MAX_PHOTOS = 5
+MAX_PRICE  = 150000
+PHOTOS_DIR = Path("photos")
+DELAY      = (2, 4)
 
 HEADERS = {
     "User-Agent": (
@@ -29,6 +28,7 @@ HEADERS = {
     ),
     "Accept-Language": "es-AR,es;q=0.9",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Referer": "https://www.google.com/",
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -36,12 +36,12 @@ def get(url, retries=3):
     for i in range(retries):
         try:
             time.sleep(random.uniform(*DELAY))
-            r = requests.get(url, headers=HEADERS, timeout=20)
+            r = requests.get(url, headers=HEADERS, timeout=25)
             r.raise_for_status()
             return r
         except Exception as e:
             print(f"  ⚠ intento {i+1} fallido: {e}")
-            time.sleep(5)
+            time.sleep(6)
     return None
 
 def slugify(text):
@@ -54,210 +54,99 @@ def photo_id(url):
     return hashlib.md5(url.encode()).hexdigest()[:10]
 
 def parse_price_usd(text):
-    """Extrae el precio en USD de un string. Retorna None si no es USD o no se puede parsear."""
-    text = text.upper().replace('.', '').replace(',', '')
-    if 'USD' not in text and 'U$D' not in text and 'U$S' not in text and '$' not in text:
-        return None
-    # Si menciona pesos argentinos explícitamente, ignorar
-    if 'ARS' in text or 'PESOS' in text:
+    text = text.upper().replace('.','').replace(',','').replace('\n','').replace(' ','')
+    if not any(x in text for x in ['USD','U$D','U$S']):
         return None
     nums = re.findall(r'\d+', text)
-    if not nums:
-        return None
-    # Tomar el número más grande que parezca un precio
     candidates = [int(n) for n in nums if 4 <= len(n) <= 8]
     return max(candidates) if candidates else None
 
 def is_within_budget(price_text):
-    """Retorna True si el precio está dentro del presupuesto o no se puede determinar."""
-    if not price_text or price_text.strip().lower() in ('consultar', 'a consultar', ''):
-        return True  # Sin precio: incluir y que Cata decida
+    if not price_text or price_text.strip().lower() in ('consultar','a consultar',''):
+        return True
     usd = parse_price_usd(price_text)
     if usd is None:
-        return True  # No se pudo parsear: incluir
+        return True
     return usd <= MAX_PRICE
 
 def download_photo(url, prop_id, idx):
-    ext = Path(urlparse(url).path).suffix or ".jpg"
-    if len(ext) > 5: ext = ".jpg"
-    filename = PHOTOS_DIR / f"p{prop_id}_{idx}{ext}"
-    if filename.exists():
-        return str(filename)
-    r = get(url)
-    if r and r.content:
-        filename.write_bytes(r.content)
-        print(f"    📷 foto {idx}: {filename.name}")
-        return str(filename)
+    try:
+        ext = Path(urlparse(url).path).suffix or ".jpg"
+        if len(ext) > 5: ext = ".jpg"
+        filename = PHOTOS_DIR / f"p{prop_id}_{idx}{ext}"
+        if filename.exists():
+            return str(filename)
+        r = get(url)
+        if r and r.content:
+            filename.write_bytes(r.content)
+            print(f"    📷 foto {idx}: {filename.name}")
+            return str(filename)
+    except Exception as e:
+        print(f"    ⚠ error descargando foto: {e}")
     return None
 
-# ── Extraer fotos de una publicación individual ───────────────────────────────
-def fetch_photos_argenprop(url):
-    """Entra a la página de la propiedad y extrae hasta MAX_PHOTOS fotos."""
-    r = get(url)
-    if not r: return []
-    soup = BeautifulSoup(r.text, "html.parser")
-    photos = []
-    # Buscar imágenes en el carrusel o galería
-    for selector in [
-        "[class*='gallery'] img", "[class*='carousel'] img",
-        "[class*='slider'] img", ".photos img",
-        "img[class*='photo']", "img[class*='image']"
-    ]:
-        imgs = soup.select(selector)
-        for img in imgs:
-            src = img.get("data-src") or img.get("data-lazy") or img.get("src", "")
-            if src and src.startswith("http") and "logo" not in src.lower() and "placeholder" not in src.lower():
-                if src not in photos:
-                    photos.append(src)
-        if len(photos) >= MAX_PHOTOS:
-            break
-    # Fallback: buscar en scripts JSON
-    if len(photos) < 2:
-        for script in soup.find_all("script"):
-            text = script.string or ""
-            urls = re.findall(r'https://[^"\']+\.(?:jpg|jpeg|png|webp)', text)
-            for u in urls:
-                if "logo" not in u.lower() and u not in photos:
-                    photos.append(u)
-                if len(photos) >= MAX_PHOTOS:
-                    break
-    return photos[:MAX_PHOTOS]
-
-def fetch_photos_zonaprop(url):
-    """Entra a la página de la propiedad en Zonaprop y extrae fotos."""
-    r = get(url)
-    if not r: return []
-    soup = BeautifulSoup(r.text, "html.parser")
-    photos = []
-    for selector in [
-        "[class*='gallery'] img", "[class*='carousel'] img",
-        "[class*='slider'] img", "[class*='photo'] img",
-        "img[class*='image']"
-    ]:
-        imgs = soup.select(selector)
-        for img in imgs:
-            src = img.get("data-src") or img.get("data-lazy") or img.get("src", "")
-            if src and src.startswith("http") and "logo" not in src.lower() and "placeholder" not in src.lower():
-                if src not in photos:
-                    photos.append(src)
-        if len(photos) >= MAX_PHOTOS:
-            break
-    if len(photos) < 2:
-        for script in soup.find_all("script"):
-            text = script.string or ""
-            urls = re.findall(r'https://[^"\']+\.(?:jpg|jpeg|png|webp)', text)
-            for u in urls:
-                if "logo" not in u.lower() and "icon" not in u.lower() and u not in photos:
-                    photos.append(u)
-                if len(photos) >= MAX_PHOTOS:
-                    break
-    return photos[:MAX_PHOTOS]
-
-# ── Argenprop ─────────────────────────────────────────────────────────────────
-def scrape_argenprop():
-    props = []
-    for zona in ZONAS:
-        url = f"https://www.argenprop.com/casas-y-ph/venta/{zona}--precio-dolares-max-150000"
-        print(f"\n🔍 Argenprop → {zona}")
-        r = get(url)
-        if not r: continue
-        soup = BeautifulSoup(r.text, "html.parser")
-        listings = soup.select(".listing__item, .card, [class*='listing-card']")
-        print(f"   {len(listings)} resultados en página")
-        for item in listings[:8]:
-            try:
-                title_el = item.select_one("h2, h3, .card__title, [class*='title']")
-                title = title_el.get_text(strip=True) if title_el else ""
-                if not title: continue
-
-                price_el = item.select_one(".card__price, [class*='price']")
-                price = re.sub(r'\s+', ' ', price_el.get_text(strip=True)).strip() if price_el else "Consultar"
-
-                if not is_within_budget(price):
-                    print(f"   ⛔ Fuera de presupuesto ({price}): {title[:50]}")
-                    continue
-
-                addr_el = item.select_one(".card__address, [class*='address'], .card__location")
-                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
-
-                link_el = item.select_one("a[href]")
-                link = ""
-                if link_el:
-                    href = link_el.get("href", "")
-                    link = href if href.startswith("http") else f"https://www.argenprop.com{href}"
-
-                desc_el = item.select_one("[class*='desc'], [class*='detail'], p")
-                desc = desc_el.get_text(strip=True) if desc_el else ""
-
-                # Obtener fotos de la página individual
-                photo_urls = []
-                if link:
-                    print(f"   📄 Entrando a publicación: {title[:50]}")
-                    photo_urls = fetch_photos_argenprop(link)
-                    print(f"      {len(photo_urls)} fotos encontradas")
-
-                prop_id = f"ar-{photo_id(link or title)}"
-                props.append({
-                    "id": prop_id, "title": title,
-                    "addr": f"{addr} · {zona.replace('-',' ').title()}",
-                    "price": price,
-                    "zona": zona.replace("-"," ").title(),
-                    "estado": "A confirmar", "tipo": "Casa / PB",
-                    "desc": desc or "Ver descripción completa en el portal.",
-                    "photo_urls": photo_urls, "photos": [], "featured": False,
-                    "links": [{"l": "Argenprop", "u": link}] if link else []
-                })
-            except Exception as e:
-                print(f"   ⚠ error: {e}")
-    return props
-
 # ── Zonaprop ──────────────────────────────────────────────────────────────────
+ZONA_MAP_ZP = {
+    "florida":        "florida-buenos-aires",
+    "munro":          "munro",
+    "villa-martelli": "villa-martelli",
+    "vicente-lopez":  "vicente-lopez",
+}
+
 def scrape_zonaprop():
     props = []
-    ZONA_MAP = {
-        "villa-martelli": "villa-martelli",
-        "florida":        "florida-buenos-aires",
-        "munro":          "munro",
-        "vicente-lopez":  "vicente-lopez"
-    }
-    for zona, slug in ZONA_MAP.items():
+    for zona, slug in ZONA_MAP_ZP.items():
         url = f"https://www.zonaprop.com.ar/casas-venta-{slug}-hasta-150000-dolares.html"
         print(f"\n🔍 Zonaprop → {zona}")
         r = get(url)
-        if not r: continue
+        if not r:
+            continue
         soup = BeautifulSoup(r.text, "html.parser")
-        listings = soup.select("[class*='postingCard'], [class*='posting-card'], article")
-        print(f"   {len(listings)} resultados en página")
-        for item in listings[:8]:
+
+        # Cada propiedad en la lista
+        listings = soup.select("[data-id], [data-posting-id], .posting-card, [class*='postingCard']")
+        if not listings:
+            # fallback: buscar por data attributes
+            listings = soup.find_all(attrs={"data-id": True})
+        print(f"   {len(listings)} resultados")
+
+        for item in listings[:10]:
             try:
-                title_el = item.select_one("h2, h3, [class*='title']")
+                # Título
+                title_el = item.select_one("h2, h3, .posting-title, [class*='title']")
                 title = title_el.get_text(strip=True) if title_el else ""
-                if not title: continue
-
-                price_el = item.select_one("[class*='price']")
-                price = re.sub(r'\s+', ' ', price_el.get_text(strip=True)).strip() if price_el else "Consultar"
-
-                if not is_within_budget(price):
-                    print(f"   ⛔ Fuera de presupuesto ({price}): {title[:50]}")
+                if not title or len(title) < 5:
                     continue
 
-                addr_el = item.select_one("[class*='address'], [class*='location']")
+                # Precio
+                price_el = item.select_one("[class*='price'], .price")
+                price = re.sub(r'\s+', ' ', price_el.get_text()).strip() if price_el else "Consultar"
+
+                if not is_within_budget(price):
+                    print(f"   ⛔ Fuera de presupuesto ({price}): {title[:40]}")
+                    continue
+
+                # Dirección
+                addr_el = item.select_one("h4, [class*='address'], [class*='location']")
                 addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
 
+                # Link
                 link_el = item.select_one("a[href]")
                 link = ""
                 if link_el:
                     href = link_el.get("href", "")
                     link = href if href.startswith("http") else f"https://www.zonaprop.com.ar{href}"
 
-                desc_el = item.select_one("[class*='desc'], [class*='detail']")
+                # Descripción
+                desc_el = item.select_one("[class*='desc'], [class*='detail'], p")
                 desc = desc_el.get_text(strip=True) if desc_el else ""
 
+                # Fotos desde la página individual
                 photo_urls = []
                 if link:
-                    print(f"   📄 Entrando a publicación: {title[:50]}")
+                    print(f"   📄 {title[:45]}")
                     photo_urls = fetch_photos_zonaprop(link)
-                    print(f"      {len(photo_urls)} fotos encontradas")
+                    print(f"      {len(photo_urls)} fotos")
 
                 prop_id = f"zp-{photo_id(link or title)}"
                 props.append({
@@ -274,6 +163,130 @@ def scrape_zonaprop():
                 print(f"   ⚠ error: {e}")
     return props
 
+def fetch_photos_zonaprop(url):
+    r = get(url)
+    if not r: return []
+    soup = BeautifulSoup(r.text, "html.parser")
+    photos = []
+    # Selector exacto que vimos en el inspector
+    for img in soup.select("img[class*='imgProperty'], img[class*='imageGrid']"):
+        src = img.get("src","")
+        if src and src.startswith("http") and src not in photos:
+            # Pedir versión más grande
+            src = re.sub(r'\d+x\d+', '1200x1200', src)
+            photos.append(src)
+        if len(photos) >= MAX_PHOTOS: break
+
+    # Fallback: cualquier img de zonapropcdn
+    if len(photos) < 2:
+        for img in soup.find_all("img"):
+            src = img.get("src","") or img.get("data-src","")
+            if "zonapropcdn" in src and src not in photos:
+                photos.append(src)
+            if len(photos) >= MAX_PHOTOS: break
+
+    return photos[:MAX_PHOTOS]
+
+# ── Argenprop ─────────────────────────────────────────────────────────────────
+def scrape_argenprop():
+    props = []
+    ZONA_MAP_AP = {
+        "florida":        "florida",
+        "munro":          "munro",
+        "villa-martelli": "villa-martelli",
+        "vicente-lopez":  "vicente-lopez",
+    }
+    for zona, slug in ZONA_MAP_AP.items():
+        url = f"https://www.argenprop.com/casas/venta/localidad-{slug}?precio-dolares-hasta-150000"
+        print(f"\n🔍 Argenprop → {zona}")
+        r = get(url)
+        if not r: continue
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        listings = soup.select(".listing__item, [class*='listing-card'], .card--postulation")
+        if not listings:
+            listings = soup.select("div[class*='card']")
+        print(f"   {len(listings)} resultados")
+
+        for item in listings[:10]:
+            try:
+                # Título
+                title_el = item.select_one("h2, h3, .card__title, [class*='title']")
+                title = title_el.get_text(strip=True) if title_el else ""
+                if not title or len(title) < 5: continue
+
+                # Precio — selector exacto del inspector
+                price_el = item.select_one(".titlebar__price, [class*='price']")
+                price = re.sub(r'\s+', ' ', price_el.get_text()).strip() if price_el else "Consultar"
+
+                if not is_within_budget(price):
+                    print(f"   ⛔ Fuera de presupuesto ({price}): {title[:40]}")
+                    continue
+
+                # Dirección
+                addr_el = item.select_one("span[class*='address'], span[class*='location'], .card__address")
+                addr = addr_el.get_text(strip=True) if addr_el else zona.replace("-"," ").title()
+
+                # Link
+                link_el = item.select_one("a[href]")
+                link = ""
+                if link_el:
+                    href = link_el.get("href","")
+                    link = href if href.startswith("http") else f"https://www.argenprop.com{href}"
+
+                # Descripción
+                desc_el = item.select_one("[class*='desc'], p")
+                desc = desc_el.get_text(strip=True) if desc_el else ""
+
+                # Fotos desde la página individual
+                photo_urls = []
+                if link:
+                    print(f"   📄 {title[:45]}")
+                    photo_urls = fetch_photos_argenprop(link)
+                    print(f"      {len(photo_urls)} fotos")
+
+                prop_id = f"ar-{photo_id(link or title)}"
+                props.append({
+                    "id": prop_id, "title": title,
+                    "addr": f"{addr} · {zona.replace('-',' ').title()}",
+                    "price": price,
+                    "zona": zona.replace("-"," ").title(),
+                    "estado": "A confirmar", "tipo": "Casa / PB",
+                    "desc": desc or "Ver descripción completa en el portal.",
+                    "photo_urls": photo_urls, "photos": [], "featured": False,
+                    "links": [{"l": "Argenprop", "u": link}] if link else []
+                })
+            except Exception as e:
+                print(f"   ⚠ error: {e}")
+    return props
+
+def fetch_photos_argenprop(url):
+    r = get(url)
+    if not r: return []
+    soup = BeautifulSoup(r.text, "html.parser")
+    photos = []
+
+    # Las fotos en Argenprop están en divs con background-image en el style
+    for div in soup.select("div[style*='background']"):
+        style = div.get("style","")
+        matches = re.findall(r'url\(([^)]+)\)', style)
+        for m in matches:
+            m = m.strip("'\" ")
+            if m.startswith("http") and "placeholder" not in m and "logo" not in m:
+                if m not in photos:
+                    photos.append(m)
+        if len(photos) >= MAX_PHOTOS: break
+
+    # Fallback: imgs directas
+    if len(photos) < 2:
+        for img in soup.find_all("img"):
+            src = img.get("src","") or img.get("data-src","")
+            if src and "static-content" in src and src not in photos:
+                photos.append(src)
+            if len(photos) >= MAX_PHOTOS: break
+
+    return photos[:MAX_PHOTOS]
+
 # ── Dedup ─────────────────────────────────────────────────────────────────────
 def dedup(props):
     seen, result = set(), []
@@ -289,26 +302,20 @@ def download_all_photos(props):
     PHOTOS_DIR.mkdir(exist_ok=True)
     for p in props:
         downloaded = []
-        for i, url in enumerate(p.get("photo_urls", [])[:MAX_PHOTOS], 1):
+        for i, url in enumerate(p.get("photo_urls",[])[:MAX_PHOTOS], 1):
             path = download_photo(url, p["id"], i)
             if path: downloaded.append(path)
         p["photos"] = downloaded
-        if downloaded:
-            print(f"  ✅ {p['title'][:50]}: {len(downloaded)} fotos")
-        else:
-            print(f"  ⚠ {p['title'][:50]}: sin fotos")
+        print(f"  {'✅' if downloaded else '⚠'} {p['title'][:45]}: {len(downloaded)} fotos")
     return props
 
 # ── Generar HTML ──────────────────────────────────────────────────────────────
 def gen_html(props, week_str):
     total = len(props)
-    prices = []
-    for p in props:
-        usd = parse_price_usd(p["price"])
-        if usd: prices.append(usd)
+    prices = [parse_price_usd(p["price"]) for p in props]
+    prices = [x for x in prices if x]
     price_range = f"U$D {min(prices)//1000}k – {max(prices)//1000}k" if prices else "–"
     patio = sum(1 for p in props if "patio" in (p["desc"]+p["title"]).lower())
-    patio_str = f"{patio} / {total}"
     for i, p in enumerate(props):
         p["featured"] = i < 3
     props_js = json.dumps(props, ensure_ascii=False, indent=2)
@@ -323,8 +330,7 @@ def gen_html(props, week_str):
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     :root {{
-      --bg:#F7F6F3;--bg2:#EDECEA;--bg3:#E4E2DE;
-      --text:#1A1916;--text2:#5C5A55;--text3:#9A9891;--border:#D8D6D1;
+      --bg:#F7F6F3;--bg2:#EDECEA;--text:#1A1916;--text2:#5C5A55;--text3:#9A9891;--border:#D8D6D1;
       --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#085041;--green-border:#5DCAA5;
       --amber:#EF9F27;--amber-bg:#FAEEDA;--amber-text:#633806;--amber-border:#EF9F27;
       --purple:#7B74E0;--purple-bg:#EEEDFE;--purple-text:#3C3489;--purple-border:#AFA9EC;
@@ -356,7 +362,7 @@ def gen_html(props, week_str):
     .carousel-placeholder {{ position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3); }}
     .carousel-placeholder i {{ font-size:36px; }}
     .carousel-nav {{ position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;pointer-events:none;z-index:10; }}
-    .nav-btn {{ width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;transition:background .15s; }}
+    .nav-btn {{ width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);border:none;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px; }}
     .nav-btn:hover {{ background:rgba(0,0,0,0.7); }}
     .dots {{ position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:10;pointer-events:none; }}
     .dot {{ width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);pointer-events:all;cursor:pointer;transition:background .2s; }}
@@ -380,7 +386,7 @@ def gen_html(props, week_str):
     .desc-text {{ display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden; }}
     .desc-text.expanded {{ display:block;overflow:visible; }}
     .ver-mas {{ font-size:11px;color:var(--green-text);cursor:pointer;margin-top:4px;display:inline-block;font-weight:500;background:none;border:none;padding:0; }}
-    .price-row {{ display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--border);padding:.75rem 1.25rem; }}
+    .price-row {{ border-top:0.5px solid var(--border);padding:.75rem 1.25rem; }}
     .price {{ font-size:15px;font-weight:600;color:var(--text); }}
     .vote-bar {{ border-top:0.5px solid var(--border);padding:.6rem 1.25rem;display:flex;align-items:center;gap:7px;flex-wrap:wrap; }}
     .vote-label {{ font-size:12px;color:var(--text3);margin-right:2px; }}
@@ -405,7 +411,6 @@ def gen_html(props, week_str):
     .modal-header {{ display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10; }}
     .modal-header h2 {{ font-size:18px;font-weight:600; }}
     .modal-close {{ background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;display:flex;align-items:center; }}
-    .modal-close:hover {{ color:var(--text); }}
     .modal-body {{ padding:1.5rem; }}
     .modal-section-label {{ font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:6px; }}
     .modal-list {{ display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem; }}
@@ -429,98 +434,78 @@ def gen_html(props, week_str):
       <h1>Casas para Cata</h1>
       <p>Actualizado el {week_str} · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
     </div>
-    <button class="mis-votos-btn" onclick="openModal()">
-      <i class="ti ti-heart"></i> Mis votos
-    </button>
+    <button class="mis-votos-btn" onclick="openModal()"><i class="ti ti-heart"></i> Mis votos</button>
   </header>
   <div class="metrics">
     <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val">{total}</div></div>
     <div class="metric"><div class="metric-label">Rango</div><div class="metric-val sm">{price_range}</div></div>
-    <div class="metric"><div class="metric-label">Con patio</div><div class="metric-val">{patio_str}</div></div>
+    <div class="metric"><div class="metric-label">Con patio</div><div class="metric-val">{patio} / {total}</div></div>
     <div class="metric"><div class="metric-label">Favoritas</div><div class="metric-val" id="count-love">–</div></div>
     <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" id="count-meh">–</div></div>
   </div>
-  <div id="sec-love" style="display:none">
-    <div class="section-label"><i class="ti ti-heart"></i> Favoritas</div>
-    <div class="grid" id="grid-love"></div>
-    <hr class="divider">
-  </div>
-  <div id="sec-meh" style="display:none">
-    <div class="section-label"><i class="ti ti-clock"></i> Posibles</div>
-    <div class="grid" id="grid-meh"></div>
-    <hr class="divider">
-  </div>
+  <div id="sec-love" style="display:none"><div class="section-label"><i class="ti ti-heart"></i> Favoritas</div><div class="grid" id="grid-love"></div><hr class="divider"></div>
+  <div id="sec-meh" style="display:none"><div class="section-label"><i class="ti ti-clock"></i> Posibles</div><div class="grid" id="grid-meh"></div><hr class="divider"></div>
   <div class="section-label"><i class="ti ti-star"></i> Destacadas</div>
   <div class="grid" id="grid-featured"></div>
   <div class="section-label" style="margin-top:.25rem"><i class="ti ti-list"></i> Otras opciones</div>
   <div class="grid" id="grid-others"></div>
 </div>
-
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
-    <div class="modal-header">
-      <h2>Mis votos</h2>
-      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
-    </div>
+    <div class="modal-header"><h2>Mis votos</h2><button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button></div>
     <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
-
 <script>
 const PROPS = {props_js};
 const STORAGE_KEY = 'casas-cata-votos';
 const cs = {{}};
-function loadVotes() {{ try {{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {{}}; }} catch {{ return {{}}; }} }}
-function saveVotes(v) {{ try {{ localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); }} catch {{}} }}
+function loadVotes(){{ try{{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||{{}}; }}catch{{return{{}};}} }}
+function saveVotes(v){{ try{{ localStorage.setItem(STORAGE_KEY,JSON.stringify(v)); }}catch{{}} }}
 let votes = loadVotes();
-
-function spawnFloater(emoji, btnEl, anim) {{
-  const rect = btnEl.getBoundingClientRect();
-  const el = document.createElement('div');
-  el.className = 'floater'; el.textContent = emoji;
-  el.style.left = (rect.left + rect.width/2 - 14) + 'px';
-  el.style.top = (rect.top - 10) + 'px';
-  el.style.animation = `${{anim}} 0.7s ease-out forwards`;
-  document.body.appendChild(el); setTimeout(() => el.remove(), 750);
+function spawnFloater(emoji,btnEl,anim){{
+  const rect=btnEl.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='floater';el.textContent=emoji;
+  el.style.left=(rect.left+rect.width/2-14)+'px';
+  el.style.top=(rect.top-10)+'px';
+  el.style.animation=`${{anim}} 0.7s ease-out forwards`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),750);
 }}
-function animateCard(id, animName) {{
-  const wrap = document.querySelector(`#card-wrap-${{id}}`);
-  if (wrap) wrap.style.animation = `${{animName}} 0.35s ease-out forwards`;
+function animateCard(id,animName){{
+  const wrap=document.querySelector(`#card-wrap-${{id}}`);
+  if(wrap)wrap.style.animation=`${{animName}} 0.35s ease-out forwards`;
 }}
-function carouselHTML(p) {{
-  const ph = p.photos || [];
-  const firstLink = (p.links && p.links[0]) ? p.links[0].u : '#';
-  if (!ph.length) return `<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
-  const imgs = ph.map((s,i) => `<img src="${{s}}" alt="Foto ${{i+1}}" class="${{i===0?'active':''}}" loading="lazy">`).join('');
-  const dots = ph.length > 1 ? ph.map((_,i) => `<span class="dot${{i===0?' active':''}}" onclick="event.stopPropagation();goTo('${{p.id}}',${{i}})"></span>`).join('') : '';
-  const feat = p.featured ? `<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>` : '';
-  const count = ph.length > 1 ? `<div class="photo-count" id="pc-${{p.id}}">1 / ${{ph.length}}</div>` : '';
-  const nav = ph.length > 1 ? `<div class="carousel-nav">
+function carouselHTML(p){{
+  const ph=p.photos||[];
+  const firstLink=(p.links&&p.links[0])?p.links[0].u:'#';
+  if(!ph.length)return`<div class="carousel"><div class="carousel-placeholder"><i class="ti ti-photo"></i><span>Sin fotos disponibles</span></div></div>`;
+  const imgs=ph.map((s,i)=>`<img src="${{s}}" alt="Foto ${{i+1}}" class="${{i===0?'active':''}}" loading="lazy">`).join('');
+  const dots=ph.length>1?ph.map((_,i)=>`<span class="dot${{i===0?' active':''}}" onclick="event.stopPropagation();goTo('${{p.id}}',${{i}})"></span>`).join(''):'';
+  const feat=p.featured?`<div class="feat-badge"><i class="ti ti-star"></i> Destacada</div>`:'';
+  const count=ph.length>1?`<div class="photo-count" id="pc-${{p.id}}">1 / ${{ph.length}}</div>`:'';
+  const nav=ph.length>1?`<div class="carousel-nav">
     <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${{p.id}}',-1)"><i class="ti ti-chevron-left"></i></button>
     <button class="nav-btn" onclick="event.preventDefault();event.stopPropagation();goSlide('${{p.id}}',1)"><i class="ti ti-chevron-right"></i></button>
-  </div><div class="dots">${{dots}}</div>` : '';
-  return `<div class="carousel" data-id="${{p.id}}">
+  </div><div class="dots">${{dots}}</div>`:'';
+  return`<div class="carousel" data-id="${{p.id}}">
     <a class="overlay-link" href="${{firstLink}}" target="_blank"></a>
     ${{imgs}}${{feat}}${{count}}
     <div class="open-badge"><i class="ti ti-external-link"></i> Ver publicación</div>
     ${{nav}}
   </div>`;
 }}
-function cardHTML(p) {{
-  const links = (p.links||[]).map(l => `<a class="plink" href="${{l.u}}" target="_blank">${{l.l}} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
-  const v = votes[p.id] || '';
-  return `<div id="card-wrap-${{p.id}}" class="card-wrap">
+function cardHTML(p){{
+  const links=(p.links||[]).map(l=>`<a class="plink" href="${{l.u}}" target="_blank">${{l.l}} <i class="ti ti-external-link" style="font-size:11px"></i></a>`).join('');
+  const v=votes[p.id]||'';
+  return`<div id="card-wrap-${{p.id}}" class="card-wrap">
     <div class="card${{p.featured?' featured':''}}" id="card-${{p.id}}">
       ${{carouselHTML(p)}}
       <div class="portal-links">${{links}}</div>
       <div class="card-body">
         <div class="card-title">${{p.title}}</div>
         <div class="card-addr"><i class="ti ti-map-pin" style="font-size:13px"></i> ${{p.addr}}</div>
-        <div class="tags">
-          <span class="tag tag-zona">${{p.zona}}</span>
-          <span class="tag tag-estado">${{p.estado}}</span>
-          <span class="tag tag-tipo">${{p.tipo}}</span>
-        </div>
+        <div class="tags"><span class="tag tag-zona">${{p.zona}}</span><span class="tag tag-estado">${{p.estado}}</span><span class="tag tag-tipo">${{p.tipo}}</span></div>
         <div>
           <div class="desc-label">Descripción del portal</div>
           <div class="desc-block">
@@ -539,99 +524,80 @@ function cardHTML(p) {{
     </div>
   </div>`;
 }}
-function toggleDesc(id) {{
-  const el = document.getElementById(`desc-${{id}}`);
-  const btn = document.getElementById(`vm-${{id}}`);
-  if (!el || !btn) return;
-  const expanded = el.classList.toggle('expanded');
-  btn.textContent = expanded ? 'Ver menos' : 'Ver más';
+function toggleDesc(id){{
+  const el=document.getElementById(`desc-${{id}}`);
+  const btn=document.getElementById(`vm-${{id}}`);
+  if(!el||!btn)return;
+  const exp=el.classList.toggle('expanded');
+  btn.textContent=exp?'Ver menos':'Ver más';
 }}
-function goSlide(id, dir) {{
-  const p = PROPS.find(x => x.id === id); const ph = p ? p.photos : [];
-  if (!ph.length) return;
-  const imgs = document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
-  const dots = document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
-  let cur = cs[id] || 0;
-  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
-  cur = (cur + dir + ph.length) % ph.length; cs[id] = cur;
-  imgs[cur].classList.add('active'); if(dots[cur]) dots[cur].classList.add('active');
-  const pc = document.getElementById(`pc-${{id}}`); if(pc) pc.textContent = `${{cur+1}} / ${{ph.length}}`;
+function goSlide(id,dir){{
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cur=(cur+dir+ph.length)%ph.length;cs[id]=cur;
+  imgs[cur].classList.add('active');if(dots[cur])dots[cur].classList.add('active');
+  const pc=document.getElementById(`pc-${{id}}`);if(pc)pc.textContent=`${{cur+1}} / ${{ph.length}}`;
 }}
-function goTo(id, idx) {{
-  const p = PROPS.find(x => x.id === id); const ph = p ? p.photos : [];
-  if (!ph.length) return;
-  const imgs = document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
-  const dots = document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
-  let cur = cs[id] || 0;
-  imgs[cur].classList.remove('active'); if(dots[cur]) dots[cur].classList.remove('active');
-  cs[id] = idx; imgs[idx].classList.add('active'); if(dots[idx]) dots[idx].classList.add('active');
-  const pc = document.getElementById(`pc-${{id}}`); if(pc) pc.textContent = `${{idx+1}} / ${{ph.length}}`;
+function goTo(id,idx){{
+  const p=PROPS.find(x=>x.id===id);const ph=p?p.photos:[];if(!ph.length)return;
+  const imgs=document.querySelectorAll(`.carousel[data-id="${{id}}"] img`);
+  const dots=document.querySelectorAll(`.carousel[data-id="${{id}}"] .dot`);
+  let cur=cs[id]||0;
+  imgs[cur].classList.remove('active');if(dots[cur])dots[cur].classList.remove('active');
+  cs[id]=idx;imgs[idx].classList.add('active');if(dots[idx])dots[idx].classList.add('active');
+  const pc=document.getElementById(`pc-${{id}}`);if(pc)pc.textContent=`${{idx+1}} / ${{ph.length}}`;
 }}
-function setVote(id, val, btnEl) {{
-  const prev = votes[id];
-  if (prev === val) {{ delete votes[id]; saveVotes(votes); render(); return; }}
-  votes[id] = val; saveVotes(votes);
-  if (val === 'love') spawnFloater('❤️', btnEl, 'float-up');
-  else if (val === 'meh') spawnFloater('🤔', btnEl, 'float-upright');
-  else spawnFloater('✕', btnEl, 'float-right');
-  if (!prev) {{ animateCard(id, val === 'no' ? 'slide-right' : 'slide-up'); setTimeout(() => render(), 360); }}
+function setVote(id,val,btnEl){{
+  const prev=votes[id];
+  if(prev===val){{delete votes[id];saveVotes(votes);render();return;}}
+  votes[id]=val;saveVotes(votes);
+  if(val==='love')spawnFloater('❤️',btnEl,'float-up');
+  else if(val==='meh')spawnFloater('🤔',btnEl,'float-upright');
+  else spawnFloater('✕',btnEl,'float-right');
+  if(!prev){{animateCard(id,val==='no'?'slide-right':'slide-up');setTimeout(()=>render(),360);}}
   else render();
 }}
-function render() {{
-  const loved  = PROPS.filter(p => votes[p.id] === 'love');
-  const meh    = PROPS.filter(p => votes[p.id] === 'meh');
-  const hidden = new Set(PROPS.filter(p => votes[p.id] === 'no').map(p => p.id));
-  document.getElementById('count-love').textContent = loved.length || '–';
-  document.getElementById('count-meh').textContent  = meh.length  || '–';
-  const sl = document.getElementById('sec-love'); const sm = document.getElementById('sec-meh');
-  sl.style.display = loved.length ? 'block' : 'none';
-  sm.style.display = meh.length  ? 'block' : 'none';
-  if (loved.length) document.getElementById('grid-love').innerHTML = loved.map(cardHTML).join('');
-  if (meh.length)   document.getElementById('grid-meh').innerHTML  = meh.map(cardHTML).join('');
-  const feat   = PROPS.filter(p => p.featured && !votes[p.id] && !hidden.has(p.id));
-  const others = PROPS.filter(p => !p.featured && !votes[p.id] && !hidden.has(p.id));
-  document.getElementById('grid-featured').innerHTML = feat.length
-    ? feat.map(cardHTML).join('')
-    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
-  document.getElementById('grid-others').innerHTML = others.length
-    ? others.map(cardHTML).join('')
-    : `<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+function render(){{
+  const loved=PROPS.filter(p=>votes[p.id]==='love');
+  const meh=PROPS.filter(p=>votes[p.id]==='meh');
+  const hidden=new Set(PROPS.filter(p=>votes[p.id]==='no').map(p=>p.id));
+  document.getElementById('count-love').textContent=loved.length||'–';
+  document.getElementById('count-meh').textContent=meh.length||'–';
+  const sl=document.getElementById('sec-love');const sm=document.getElementById('sec-meh');
+  sl.style.display=loved.length?'block':'none';
+  sm.style.display=meh.length?'block':'none';
+  if(loved.length)document.getElementById('grid-love').innerHTML=loved.map(cardHTML).join('');
+  if(meh.length)document.getElementById('grid-meh').innerHTML=meh.map(cardHTML).join('');
+  const feat=PROPS.filter(p=>p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  const others=PROPS.filter(p=>!p.featured&&!votes[p.id]&&!hidden.has(p.id));
+  document.getElementById('grid-featured').innerHTML=feat.length?feat.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
+  document.getElementById('grid-others').innerHTML=others.length?others.map(cardHTML).join(''):`<div class="empty-state"><i class="ti ti-check"></i> Ya las clasificaste todas.</div>`;
 }}
-function openModal() {{
-  const loved = PROPS.filter(p => votes[p.id] === 'love');
-  const meh   = PROPS.filter(p => votes[p.id] === 'meh');
-  function itemHTML(p, cls) {{
-    const links = (p.links||[]).map(l =>
-      `<a class="modal-link" href="${{l.u}}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${{l.l}}</a>`
-    ).join('');
-    return `<div class="modal-item ${{cls}}">
-      <div class="modal-item-info">
-        <div class="modal-item-title">${{p.title}}</div>
-        <div class="modal-item-addr">${{p.addr}}</div>
-        <div class="modal-item-price">${{p.price}}</div>
-      </div>
-      <div class="modal-item-links">${{links}}</div>
-    </div>`;
+function openModal(){{
+  const loved=PROPS.filter(p=>votes[p.id]==='love');
+  const meh=PROPS.filter(p=>votes[p.id]==='meh');
+  function itemHTML(p,cls){{
+    const links=(p.links||[]).map(l=>`<a class="modal-link" href="${{l.u}}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${{l.l}}</a>`).join('');
+    return`<div class="modal-item ${{cls}}"><div class="modal-item-info"><div class="modal-item-title">${{p.title}}</div><div class="modal-item-addr">${{p.addr}}</div><div class="modal-item-price">${{p.price}}</div></div><div class="modal-item-links">${{links}}</div></div>`;
   }}
-  let html = '';
-  html += `<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
-  html += loved.length
-    ? `<div class="modal-list">${{loved.map(p => itemHTML(p,'love-border')).join('')}}</div>`
-    : `<p class="modal-empty">Todavía no marcaste ninguna como favorita.</p>`;
-  html += `<div class="modal-section-label"><i class="ti ti-clock"></i> Posibles</div>`;
-  html += meh.length
-    ? `<div class="modal-list">${{meh.map(p => itemHTML(p,'meh-border')).join('')}}</div>`
-    : `<p class="modal-empty">Todavía no marcaste ninguna como posible.</p>`;
-  document.getElementById('modal-body').innerHTML = html;
+  let html='';
+  html+=`<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
+  html+=loved.length?`<div class="modal-list">${{loved.map(p=>itemHTML(p,'love-border')).join('')}}</div>`:`<p class="modal-empty">Todavía no marcaste ninguna como favorita.</p>`;
+  html+=`<div class="modal-section-label"><i class="ti ti-clock"></i> Posibles</div>`;
+  html+=meh.length?`<div class="modal-list">${{meh.map(p=>itemHTML(p,'meh-border')).join('')}}</div>`:`<p class="modal-empty">Todavía no marcaste ninguna como posible.</p>`;
+  document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }}
-function closeModal() {{
+function closeModal(){{
   document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+  document.body.style.overflow='';
 }}
-function closeModalOutside(e) {{
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
+function closeModalOutside(e){{
+  if(e.target===document.getElementById('modal-overlay'))closeModal();
 }}
 render();
 </script>
@@ -640,14 +606,14 @@ render();
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    print("🏠 Casas para Cata — scraper v2 iniciando\n")
+    print("🏠 Casas para Cata — scraper v3\n")
     props = []
-    props += scrape_argenprop()
     props += scrape_zonaprop()
-    print(f"\n📦 Total antes de deduplicar: {len(props)}")
+    props += scrape_argenprop()
+    print(f"\n📦 Total bruto: {len(props)}")
     props = dedup(props)
     props = props[:MAX_PROPS]
-    print(f"✅ Después de deduplicar y limitar: {len(props)}")
+    print(f"✅ Después de dedup: {len(props)}")
     print("\n📷 Descargando fotos...")
     props = download_all_photos(props)
     MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
@@ -656,7 +622,7 @@ def main():
     print("\n📝 Generando index.html...")
     html = gen_html(props, week_str)
     Path("index.html").write_text(html, encoding="utf-8")
-    print(f"\n✅ Listo. index.html generado con {len(props)} propiedades.")
+    print(f"\n✅ Listo. {len(props)} propiedades.")
 
 if __name__ == "__main__":
     main()
