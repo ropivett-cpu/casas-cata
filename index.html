@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Casas para Cata</title>
+  <title>Chez Coqui</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -103,21 +103,23 @@
     .modal-link { font-size:12px;color:#2563eb;text-decoration:none;border:0.5px solid #93c5fd;border-radius:var(--radius-sm);padding:4px 10px;display:flex;align-items:center;gap:4px;white-space:nowrap; }
     .modal-link:hover { background:#eff6ff; }
     .modal-empty { font-size:13px;color:var(--text3);margin-bottom:2rem; }
+    .modal-remove { font-size:12px;color:var(--red-text);background:var(--red-bg);border:0.5px solid var(--red-border);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap; }
+    .modal-remove:hover { opacity:0.8; }
   </style>
 </head>
 <body>
 <div class="page">
   <header class="site-header">
     <div>
-      <h1>Casas para Cata</h1>
+      <h1>Chez Coqui</h1>
       <p>Actualizado el 10 de julio de 2026 · Florida · Munro · Villa Martelli · hasta U$D 150.000</p>
     </div>
     <button class="mis-votos-btn" onclick="openModal()"><i class="ti ti-heart"></i> Mis votos</button>
   </header>
   <div class="metrics">
     <div class="metric"><div class="metric-label">Relevadas</div><div class="metric-val">20</div></div>
-    <div class="metric"><div class="metric-label">Rango</div><div class="metric-val sm">U$D 78k – 150k</div></div>
-    <div class="metric"><div class="metric-label">Con patio</div><div class="metric-val">5 / 20</div></div>
+    <div class="metric"><div class="metric-label">Rango</div><div class="metric-val sm">U$D 105k – 150k</div></div>
+    <div class="metric"><div class="metric-label">Con patio</div><div class="metric-val">6 / 20</div></div>
     <div class="metric"><div class="metric-label">Favoritas</div><div class="metric-val" id="count-love">–</div></div>
     <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" id="count-meh">–</div></div>
   </div>
@@ -164,37 +166,6 @@ const PROPS = [
       {
         "l": "Zonaprop",
         "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-casa-2-dorm.-venta-florida-belgrano-oeste-59571907.html"
-      }
-    ]
-  },
-  {
-    "id": "zp-702a7faa86",
-    "title": "Venta Casa en Lote Propio 3 Ambientes - Florida Urquiza 3800 Zona R3",
-    "addr": "Urquiza al 3800,  Florida, Vicente López",
-    "price": "USD 139.500",
-    "zona": "Florida",
-    "estado": "A confirmar",
-    "tipo": "Casa / PB",
-    "desc": "Ver descripción completa en el portal.",
-    "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/58/47/76/05/1200x1200/2035997530.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997558.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997562.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997539.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997538.jpg"
-    ],
-    "photos": [
-      "photos/pzp-702a7faa86_1.jpg",
-      "photos/pzp-702a7faa86_2.jpg",
-      "photos/pzp-702a7faa86_3.jpg",
-      "photos/pzp-702a7faa86_4.jpg",
-      "photos/pzp-702a7faa86_5.jpg"
-    ],
-    "featured": true,
-    "links": [
-      {
-        "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-en-lote-propio-3-ambientes-florida-58477605.html"
       }
     ]
   },
@@ -252,11 +223,42 @@ const PROPS = [
       "photos/pzp-d041c1ae1d_4.jpg",
       "photos/pzp-d041c1ae1d_5.jpg"
     ],
-    "featured": false,
+    "featured": true,
     "links": [
       {
         "l": "Zonaprop",
         "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-casa-en-florida-belgrano-oeste-58753220.html"
+      }
+    ]
+  },
+  {
+    "id": "zp-702a7faa86",
+    "title": "Venta Casa en Lote Propio 3 Ambientes - Florida Urquiza 3800 Zona R3",
+    "addr": "Urquiza al 3800,  Florida, Vicente López",
+    "price": "USD 139.500",
+    "zona": "Florida",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/58/47/76/05/1200x1200/2035997530.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997558.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997562.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997539.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/47/76/05/360x266/2035997538.jpg"
+    ],
+    "photos": [
+      "photos/pzp-702a7faa86_1.jpg",
+      "photos/pzp-702a7faa86_2.jpg",
+      "photos/pzp-702a7faa86_3.jpg",
+      "photos/pzp-702a7faa86_4.jpg",
+      "photos/pzp-702a7faa86_5.jpg"
+    ],
+    "featured": false,
+    "links": [
+      {
+        "l": "Zonaprop",
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-en-lote-propio-3-ambientes-florida-58477605.html"
       }
     ]
   },
@@ -292,33 +294,33 @@ const PROPS = [
     ]
   },
   {
-    "id": "zp-2ef453fa71",
-    "title": "Casa de 2 Ambientes a La Venta con Gran Lote - Munro",
-    "addr": "Agüero al 3000,  Munro, Vicente López",
-    "price": "USD 138.000",
+    "id": "zp-a30314770a",
+    "title": "Venta Duplex en Munro - 3 Ambientes con Cochera, Patio, Parrilla, Jardín, Apto Crédito",
+    "addr": "Acassuso al 4100,  Munro, Vicente López",
+    "price": "USD 143.000",
     "zona": "Munro",
     "estado": "A confirmar",
     "tipo": "Casa / PB",
     "desc": "Ver descripción completa en el portal.",
     "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/55/79/38/01/1200x1200/2049476893.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/2049476891.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/2049476892.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/1964868162.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/1964868175.jpg"
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/57/77/78/78/1200x1200/2016914584.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914576.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914573.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914582.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914585.jpg"
     ],
     "photos": [
-      "photos/pzp-2ef453fa71_1.jpg",
-      "photos/pzp-2ef453fa71_2.jpg",
-      "photos/pzp-2ef453fa71_3.jpg",
-      "photos/pzp-2ef453fa71_4.jpg",
-      "photos/pzp-2ef453fa71_5.jpg"
+      "photos/pzp-a30314770a_1.jpg",
+      "photos/pzp-a30314770a_2.jpg",
+      "photos/pzp-a30314770a_3.jpg",
+      "photos/pzp-a30314770a_4.jpg",
+      "photos/pzp-a30314770a_5.jpg"
     ],
     "featured": false,
     "links": [
       {
         "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-casa-de-2-ambientes-a-la-venta-con-gran-lote-munro-55793801.html"
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-duplex-en-munro-3-ambientes-con-cochera-57777878.html"
       }
     ]
   },
@@ -385,95 +387,126 @@ const PROPS = [
     ]
   },
   {
-    "id": "zp-a30314770a",
-    "title": "Venta Duplex en Munro - 3 Ambientes con Cochera, Patio, Parrilla, Jardín, Apto Crédito",
-    "addr": "Acassuso al 4100,  Munro, Vicente López",
-    "price": "USD 143.000",
+    "id": "zp-2ef453fa71",
+    "title": "Casa de 2 Ambientes a La Venta con Gran Lote - Munro",
+    "addr": "Agüero al 3000,  Munro, Vicente López",
+    "price": "USD 138.000",
     "zona": "Munro",
     "estado": "A confirmar",
     "tipo": "Casa / PB",
     "desc": "Ver descripción completa en el portal.",
     "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/57/77/78/78/1200x1200/2016914584.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914576.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914573.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914582.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/77/78/78/360x266/2016914585.jpg"
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/55/79/38/01/1200x1200/2049476893.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/2049476891.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/2049476892.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/1964868162.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/55/79/38/01/360x266/1964868175.jpg"
     ],
     "photos": [
-      "photos/pzp-a30314770a_1.jpg",
-      "photos/pzp-a30314770a_2.jpg",
-      "photos/pzp-a30314770a_3.jpg",
-      "photos/pzp-a30314770a_4.jpg",
-      "photos/pzp-a30314770a_5.jpg"
+      "photos/pzp-2ef453fa71_1.jpg",
+      "photos/pzp-2ef453fa71_2.jpg",
+      "photos/pzp-2ef453fa71_3.jpg",
+      "photos/pzp-2ef453fa71_4.jpg",
+      "photos/pzp-2ef453fa71_5.jpg"
     ],
     "featured": false,
     "links": [
       {
         "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-duplex-en-munro-3-ambientes-con-cochera-57777878.html"
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-casa-de-2-ambientes-a-la-venta-con-gran-lote-munro-55793801.html"
       }
     ]
   },
   {
-    "id": "zp-f5b840ef10",
-    "title": "Venta Casa 3 Ambientes en Munro",
-    "addr": "Misiones al 2600,  Munro, Vicente López",
-    "price": "USD 112.000",
+    "id": "zp-e2b46c5fa1",
+    "title": "Venta Casa Americana Techo de Losa Ideal Ampliación",
+    "addr": "Aguero al 3000,  Munro, Vicente López",
+    "price": "USD 138.000",
     "zona": "Munro",
     "estado": "A confirmar",
     "tipo": "Casa / PB",
     "desc": "Ver descripción completa en el portal.",
     "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/57/69/74/20/1200x1200/2014781952.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/69/74/20/360x266/2014781950.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/69/74/20/360x266/2014781957.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/69/74/20/360x266/2014781946.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/57/69/74/20/360x266/2014781954.jpg"
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/58/52/24/97/1200x1200/2037217217.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/52/24/97/360x266/2037217221.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/52/24/97/360x266/2037217220.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/52/24/97/360x266/2037217219.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/52/24/97/360x266/2037217228.jpg"
     ],
     "photos": [
-      "photos/pzp-f5b840ef10_1.jpg",
-      "photos/pzp-f5b840ef10_2.jpg",
-      "photos/pzp-f5b840ef10_3.jpg",
-      "photos/pzp-f5b840ef10_4.jpg",
-      "photos/pzp-f5b840ef10_5.jpg"
+      "photos/pzp-e2b46c5fa1_1.jpg",
+      "photos/pzp-e2b46c5fa1_2.jpg",
+      "photos/pzp-e2b46c5fa1_3.jpg",
+      "photos/pzp-e2b46c5fa1_4.jpg",
+      "photos/pzp-e2b46c5fa1_5.jpg"
     ],
     "featured": false,
     "links": [
       {
         "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-3-ambientes-en-munro-57697420.html"
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-americana-techo-de-losa-ideal-ampliacion-58522497.html"
       }
     ]
   },
   {
-    "id": "zp-5047dc8387",
-    "title": "Casa PH Al Fondo en Venta de 3 Ambientes a Estrenar en Munro",
-    "addr": "Aguero al 3300,  Munro, Vicente López",
+    "id": "zp-173875065c",
+    "title": "Venta Dúplex 4 Ambientes en Munro",
+    "addr": "José Hernández al 5600,  Munro, Vicente López",
+    "price": "USD 150.000",
+    "zona": "Munro",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/52/01/02/24/1200x1200/1873968458.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/52/01/02/24/360x266/1873968453.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/52/01/02/24/360x266/1873968436.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/52/01/02/24/360x266/1873968428.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/52/01/02/24/360x266/1873968433.jpg"
+    ],
+    "photos": [
+      "photos/pzp-173875065c_1.jpg",
+      "photos/pzp-173875065c_2.jpg",
+      "photos/pzp-173875065c_3.jpg",
+      "photos/pzp-173875065c_4.jpg",
+      "photos/pzp-173875065c_5.jpg"
+    ],
+    "featured": false,
+    "links": [
+      {
+        "l": "Zonaprop",
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-duplex-4-ambientes-en-munro-52010224.html"
+      }
+    ]
+  },
+  {
+    "id": "zp-b69cadf123",
+    "title": "Venta Casa Multifamiliar 2 Unidades 3 Ambientes",
+    "addr": "Chile al 400,  Villa Martelli, Vicente López",
     "price": "USD 130.000",
-    "zona": "Munro",
+    "zona": "Villa Martelli",
     "estado": "A confirmar",
     "tipo": "Casa / PB",
     "desc": "Ver descripción completa en el portal.",
     "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/55/07/56/97/1200x1200/1947512791.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/07/56/97/360x266/1947512782.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/07/56/97/360x266/1947512792.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/07/56/97/360x266/1947512790.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/55/07/56/97/360x266/1947512795.jpg"
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/58/92/00/86/1200x1200/2063589989.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937262.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937272.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937280.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937264.jpg"
     ],
     "photos": [
-      "photos/pzp-5047dc8387_1.jpg",
-      "photos/pzp-5047dc8387_2.jpg",
-      "photos/pzp-5047dc8387_3.jpg",
-      "photos/pzp-5047dc8387_4.jpg",
-      "photos/pzp-5047dc8387_5.jpg"
+      "photos/pzp-b69cadf123_1.jpg",
+      "photos/pzp-b69cadf123_2.jpg",
+      "photos/pzp-b69cadf123_3.jpg",
+      "photos/pzp-b69cadf123_4.jpg",
+      "photos/pzp-b69cadf123_5.jpg"
     ],
     "featured": false,
     "links": [
       {
         "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-casa-ph-al-fondo-en-venta-de-3-ambientes-a-estrenar-en-55075697.html"
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-multifamiliar-2-unidades-3-ambientes-58920086.html"
       }
     ]
   },
@@ -540,95 +573,64 @@ const PROPS = [
     ]
   },
   {
-    "id": "zp-b69cadf123",
-    "title": "Venta Casa Multifamiliar 2 Unidades 3 Ambientes",
-    "addr": "Chile al 400,  Villa Martelli, Vicente López",
-    "price": "USD 130.000",
+    "id": "zp-504c0d38e0",
+    "title": "En Venta Casa 4 Amb. Quincho, Garaje, Jardín, Patio y Terraza. Villa Martelli",
+    "addr": "Las Heras al 5100,  Villa Martelli, Vicente López",
+    "price": "USD 112.000",
     "zona": "Villa Martelli",
     "estado": "A confirmar",
     "tipo": "Casa / PB",
     "desc": "Ver descripción completa en el portal.",
     "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/58/92/00/86/1200x1200/2063589989.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937262.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937272.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937280.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/92/00/86/360x266/2047937264.jpg"
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/57/92/20/70/1200x1200/2052810959.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/92/20/70/360x266/2052811071.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/92/20/70/360x266/2052811012.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/92/20/70/360x266/2052811112.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/92/20/70/360x266/2052811159.jpg"
     ],
     "photos": [
-      "photos/pzp-b69cadf123_1.jpg",
-      "photos/pzp-b69cadf123_2.jpg",
-      "photos/pzp-b69cadf123_3.jpg",
-      "photos/pzp-b69cadf123_4.jpg",
-      "photos/pzp-b69cadf123_5.jpg"
+      "photos/pzp-504c0d38e0_1.jpg",
+      "photos/pzp-504c0d38e0_2.jpg",
+      "photos/pzp-504c0d38e0_3.jpg",
+      "photos/pzp-504c0d38e0_4.jpg",
+      "photos/pzp-504c0d38e0_5.jpg"
     ],
     "featured": false,
     "links": [
       {
         "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-venta-casa-multifamiliar-2-unidades-3-ambientes-58920086.html"
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-en-venta-casa-4-amb.-quincho-garaje-jardin-patio-y-57922070.html"
       }
     ]
   },
   {
-    "id": "zp-76e4149376",
-    "title": "En Venta Casa 3 Amb. Patio y Terraza. V. Martelli - Vicente López",
-    "addr": "Gral. Juan Lavalle  al 3700,  Villa Martelli, Vicente López",
-    "price": "USD 132.000",
+    "id": "zp-b8a135cd03",
+    "title": "Duplex 3 Amb C/patio y Terraza en Florida",
+    "addr": "Julián Segundo Agüero 192,  Villa Martelli, Vicente López",
+    "price": "USD 150.000",
     "zona": "Villa Martelli",
     "estado": "A confirmar",
     "tipo": "Casa / PB",
     "desc": "Ver descripción completa en el portal.",
     "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/58/29/75/17/1200x1200/2052811079.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/75/17/360x266/2052811236.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/75/17/360x266/2052811216.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/75/17/360x266/2052811065.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/75/17/360x266/2052811186.jpg"
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/57/99/45/11/1200x1200/2022557896.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/99/45/11/360x266/2022557887.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/99/45/11/360x266/2022557888.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/99/45/11/360x266/2022557890.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/57/99/45/11/360x266/2022557889.jpg"
     ],
     "photos": [
-      "photos/pzp-76e4149376_1.jpg",
-      "photos/pzp-76e4149376_2.jpg",
-      "photos/pzp-76e4149376_3.jpg",
-      "photos/pzp-76e4149376_4.jpg",
-      "photos/pzp-76e4149376_5.jpg"
+      "photos/pzp-b8a135cd03_1.jpg",
+      "photos/pzp-b8a135cd03_2.jpg",
+      "photos/pzp-b8a135cd03_3.jpg",
+      "photos/pzp-b8a135cd03_4.jpg",
+      "photos/pzp-b8a135cd03_5.jpg"
     ],
     "featured": false,
     "links": [
       {
         "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-en-venta-casa-3-amb.-patio-y-terraza.-v.-martelli-58297517.html"
-      }
-    ]
-  },
-  {
-    "id": "zp-69786e7cba",
-    "title": "Casa a Refaccionar con 150 m² Terreno y 2 Habitaciones en Venta, Villa Martelli",
-    "addr": "Domingo French 579,  Villa Martelli, Vicente López",
-    "price": "USD 78.000",
-    "zona": "Villa Martelli",
-    "estado": "A confirmar",
-    "tipo": "Casa / PB",
-    "desc": "Ver descripción completa en el portal.",
-    "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/58/29/35/92/1200x1200/2030839452.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/35/92/360x266/2030839454.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/35/92/360x266/2030839448.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/35/92/360x266/2030839451.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/58/29/35/92/360x266/2030839450.jpg"
-    ],
-    "photos": [
-      "photos/pzp-69786e7cba_1.jpg",
-      "photos/pzp-69786e7cba_2.jpg",
-      "photos/pzp-69786e7cba_3.jpg",
-      "photos/pzp-69786e7cba_4.jpg",
-      "photos/pzp-69786e7cba_5.jpg"
-    ],
-    "featured": false,
-    "links": [
-      {
-        "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-casa-a-refaccionar-con-150-m-sup2--terreno-y-2-58293592.html"
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-duplex-3-amb-c-patio-y-terraza-en-florida-57994511.html"
       }
     ]
   },
@@ -695,37 +697,6 @@ const PROPS = [
     ]
   },
   {
-    "id": "zp-497107beff",
-    "title": "Exclusiva Casa en Olivos",
-    "addr": "Saturnino Segurola al 900,  Vicente López, GBA Norte",
-    "price": "Consultar",
-    "zona": "Vicente López",
-    "estado": "A confirmar",
-    "tipo": "Casa / PB",
-    "desc": "Ver descripción completa en el portal.",
-    "photo_urls": [
-      "https://imgar.zonapropcdn.com/avisos/resize/1/00/59/22/14/01/1200x1200/2055632844.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632979.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632948.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632941.jpg",
-      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632867.jpg"
-    ],
-    "photos": [
-      "photos/pzp-497107beff_1.jpg",
-      "photos/pzp-497107beff_2.jpg",
-      "photos/pzp-497107beff_3.jpg",
-      "photos/pzp-497107beff_4.jpg",
-      "photos/pzp-497107beff_5.jpg"
-    ],
-    "featured": false,
-    "links": [
-      {
-        "l": "Zonaprop",
-        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-exclusiva-casa-en-olivos-59221401.html"
-      }
-    ]
-  },
-  {
     "id": "zp-93177d50e6",
     "title": "Dúplex 4 Ambientes con Cochera, Patio y Playroom en Carapachay",
     "addr": "Profesor Manuel García 5388,  Carapachay, Vicente López",
@@ -753,6 +724,37 @@ const PROPS = [
       {
         "l": "Zonaprop",
         "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-duplex-4-ambientes-con-cochera-patio-y-playroom-en-59213550.html"
+      }
+    ]
+  },
+  {
+    "id": "zp-497107beff",
+    "title": "Exclusiva Casa en Olivos",
+    "addr": "Saturnino Segurola al 900,  Vicente López, GBA Norte",
+    "price": "Consultar",
+    "zona": "Vicente López",
+    "estado": "A confirmar",
+    "tipo": "Casa / PB",
+    "desc": "Ver descripción completa en el portal.",
+    "photo_urls": [
+      "https://imgar.zonapropcdn.com/avisos/resize/1/00/59/22/14/01/1200x1200/2055632844.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632979.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632948.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632941.jpg",
+      "https://imgar.zonapropcdn.com/avisos/1/00/59/22/14/01/360x266/2055632867.jpg"
+    ],
+    "photos": [
+      "photos/pzp-497107beff_1.jpg",
+      "photos/pzp-497107beff_2.jpg",
+      "photos/pzp-497107beff_3.jpg",
+      "photos/pzp-497107beff_4.jpg",
+      "photos/pzp-497107beff_5.jpg"
+    ],
+    "featured": false,
+    "links": [
+      {
+        "l": "Zonaprop",
+        "u": "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-exclusiva-casa-en-olivos-59221401.html"
       }
     ]
   }
@@ -880,7 +882,7 @@ function openModal(){
   const meh=PROPS.filter(p=>votes[p.id]==='meh');
   function itemHTML(p,cls){
     const links=(p.links||[]).map(l=>`<a class="modal-link" href="${l.u}" target="_blank"><i class="ti ti-external-link" style="font-size:11px"></i> ${l.l}</a>`).join('');
-    return`<div class="modal-item ${cls}"><div class="modal-item-info"><div class="modal-item-title">${p.title}</div><div class="modal-item-addr">${p.addr}</div><div class="modal-item-price">${p.price}</div></div><div class="modal-item-links">${links}</div></div>`;
+    return`<div class="modal-item ${cls}"><div class="modal-item-info"><div class="modal-item-title">${p.title}</div><div class="modal-item-addr">${p.addr}</div><div class="modal-item-price">${p.price}</div></div><div class="modal-item-links">${links}<button class="modal-remove" onclick="removeVote('${p.id}')"><i class="ti ti-trash" style="font-size:11px"></i> Quitar</button></div></div>`;
   }
   let html='';
   html+=`<div class="modal-section-label"><i class="ti ti-heart"></i> Favoritas</div>`;
@@ -890,6 +892,12 @@ function openModal(){
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow='hidden';
+}
+function removeVote(id){
+  delete votes[id];
+  saveVotes(votes);
+  render();
+  openModal();
 }
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
